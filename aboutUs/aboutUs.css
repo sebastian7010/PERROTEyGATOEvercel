@@ -147,3 +147,27 @@ body {
 .fadeInUp {
     animation: fadeInUp 0.8s forwards;
 }
+
+
+/* Botón sutil “Devoluciones” */
+
+.btn-devoluciones {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.4);
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    text-decoration: none;
+    opacity: 0.3;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 1000;
+}
+
+.btn-devoluciones:hover {
+    opacity: 1;
+    transform: scale(1.1);
+    background: rgba(0, 0, 0, 0.6);
+}
