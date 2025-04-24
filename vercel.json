@@ -1,0 +1,18 @@
+{
+    "redirects": [{
+            "source": "http://perroteygatote.com/:path*",
+            "destination": "https://www.perroteygatote.com/:path*",
+            "permanent": true
+        },
+        {
+            "source": "https://perroteygatote.com/:path*",
+            "destination": "https://www.perroteygatote.com/:path*",
+            "permanent": true
+        },
+        {
+            "source": "http://www.perroteygatote.com/:path*",
+            "destination": "https://www.perroteygatote.com/:path*",
+            "permanent": true
+        }
+    ]
+}
