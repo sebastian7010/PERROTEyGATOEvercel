@@ -2,7 +2,7 @@
         "id": 1,
         "categoryId": 1,
         "name": "ropa para gato o perro",
-        "price": 50000,
+        "price": 10,
         "description": "ropa para gato o perro ms",
         "image": "https://images-pets.s3.us-east-2.amazonaws.com/imagenes/ropa010.webp",
         "gallery": [
