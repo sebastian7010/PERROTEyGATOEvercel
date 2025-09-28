@@ -88,28 +88,38 @@
             <section class="search-section">
                 <div class="search-bar-container">
                     <img src="assets/lupa.svg" alt="Lupa" class="icon-lupa">
-                    <input type="text" id="search-bar" class="search-bar" placeholder="Buscar productos para perros y gatos">
+                    <input type="text" id="search-bar" class="search-bar" placeholder="productos para animales">
                 </div>
             </section>
 
         </div>
 
         <section class="pet-selection">
-            <h2 class="section-title">¿TIENES UN PERRO O GATO?</h2>
-            <div class="pet-images">
-                <div class="pet-images">
-                    <div class="pet-image-container">
-                        <a href="perro/perro.html">
-                            <img src="assets/bob.png" alt="Perro con gafas" class="pet-image">
-                        </a>
-                    </div>
-                    <div class="pet-image-container">
-                        <a href="gato/gato.html">
-                            <img src="assets/gari.png" alt="Gato sonriente" class="pet-image">
-                        </a>
-                    </div>
+            <h2 class="section-title">¿QUÉ ANIMAL TIENES?</h2>
+
+            <div class="pet-marquee">
+                <div class="pet-track">
+                    <!-- lista original -->
+                    <a class="pet-image-container" href="perro/perro.html"><img src="assets/bob.png" alt="Perro" class="pet-image"></a>
+                    <a class="pet-image-container" href="gato/gato.html"><img src="assets/gari.png" alt="Gato" class="pet-image"></a>
+                    <a class="pet-image-container" href="caballo/caballo.html"><img src="assets/caballo.png" alt="Caballo" class="pet-image"></a>
+                    <a class="pet-image-container" href="ternero/ternero.html"><img src="assets/ternero.png" alt="Ternero" class="pet-image"></a>
+                    <a class="pet-image-container" href="pajaros/pajaros.html"><img src="assets/pajaro.png" alt="Pájaros" class="pet-image"></a>
+                    <a class="pet-image-container" href="conejo/conejo"><img src="assets/conejo.png" alt="coejo" class="pet-image"></a>
+
+
+                    <!-- duplicado para loop infinito -->
+                    <a class="pet-image-container" href="perro/perro.html"><img src="assets/bob.png" alt="" class="pet-image"></a>
+                    <a class="pet-image-container" href="gato/gato.html"><img src="assets/gari.png" alt="" class="pet-image"></a>
+                    <a class="pet-image-container" href="caballo/caballo.html"><img src="assets/caballo.png" alt="" class="pet-image"></a>
+                    <a class="pet-image-container" href="ternero/ternero.html"><img src="assets/ternero.png" alt="" class="pet-image"></a>
+                    <a class="pet-image-container" href="pajaros/pajaro.html"><img src="assets/pajaro.png" alt="" class="pet-image"></a>
+                    <a class="pet-image-container" href="conejo/conejo.html"><img src="assets/conejo.png" alt="coejo" class="pet-image"></a>
                 </div>
+            </div>
         </section>
+
+
 
         <section class="carousel-section">
             <div id="carousels-container"></div>
