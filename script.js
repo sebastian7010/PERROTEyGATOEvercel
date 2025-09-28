@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Función para detectar soporte de WebP en el navegador
 function supportsWebp(callback) {
     const img = new Image();
@@ -628,47 +629,139 @@ document.getElementById('modal-overlay').addEventListener('click', (event) => {
         closeModal();
     }
 });
-// === Scroll lateral cómodo para la marquee ===
-(function enableMarqueeScroll() {
-    const marquee = document.querySelector('.pet-marquee');
-    if (!marquee) return;
 
-    // Desvía la rueda vertical al eje X
-    marquee.addEventListener('wheel', (e) => {
-        // Si hay shift, respeta comportamiento nativo
+
+
+
+
+
+/* === MARQUEE INFINITO (scroll + auto + wrap) === */
+(function initPetMarquee() {
+    var marquee = document.querySelector('.pet-marquee');
+    if (!marquee) return;
+    var track = marquee.querySelector('.pet-track');
+    if (!track) return;
+
+    // 1) Duplicar contenido hasta asegurar overflow amplio
+    var original = track.innerHTML;
+
+    function ensureOverflow(multiplier) {
+        if (multiplier === void 0) multiplier = 4;
+        track.innerHTML = original; // reset
+        while (track.scrollWidth < marquee.clientWidth * multiplier) {
+            track.innerHTML += original;
+        }
+    }
+    ensureOverflow(4);
+
+    // 2) Medidas y centrado en el set del medio
+    var oneSetW = 0;
+
+    function computeOneSetWidth() {
+        var repeats = Math.max(1, Math.round(track.innerHTML.length / original.length));
+        return track.scrollWidth / repeats;
+    }
+
+    function positionAtCenter() {
+        oneSetW = computeOneSetWidth();
+        var repeats = Math.max(1, Math.round(track.scrollWidth / oneSetW));
+        var centerIndex = Math.floor(repeats / 2);
+        marquee.scrollLeft = centerIndex * oneSetW;
+    }
+    requestAnimationFrame(positionAtCenter);
+
+    // 3) Wrap infinito en ambos extremos
+    function wrapIfNeeded() {
+        if (!oneSetW) return;
+        var L = marquee.scrollLeft;
+        var totalW = track.scrollWidth;
+        if (L <= 0) {
+            marquee.scrollLeft = L + oneSetW;
+        } else if (L + marquee.clientWidth >= totalW - 1) {
+            marquee.scrollLeft = L - oneSetW;
+        }
+    }
+    marquee.addEventListener('scroll', wrapIfNeeded, { passive: true });
+
+    // 4) Auto-scroll con pausa inteligente
+    var paused = false;
+    var isDragging = false;
+    var speed = 1.2; // px/frame (~72 px/s a 60fps). Ajusta a gusto.
+    var resumeTimer = null;
+
+    function pauseAuto(ms) {
+        if (ms === void 0) ms = 1500;
+        paused = true;
+        if (resumeTimer) clearTimeout(resumeTimer);
+        resumeTimer = setTimeout(function() { paused = false; }, ms);
+    }
+
+    function tick() {
+        if (!paused && !isDragging && speed > 0) {
+            marquee.scrollLeft += speed;
+            wrapIfNeeded();
+        }
+        requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+
+    // Pausas por interacción
+    marquee.addEventListener('mouseenter', function() { pauseAuto(1200); });
+    marquee.addEventListener('focusin', function() { pauseAuto(1200); });
+
+    // Rueda vertical => scroll horizontal
+    marquee.addEventListener('wheel', function(e) {
         if (e.shiftKey) return;
         if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
             marquee.scrollLeft += e.deltaY;
+            wrapIfNeeded();
+            pauseAuto(1200);
             e.preventDefault();
         }
     }, { passive: false });
 
-    // Drag (click y arrastrar) para desplazar
-    let isDown = false,
-        startX = 0,
-        scrollStart = 0;
-    marquee.addEventListener('pointerdown', (e) => {
-        isDown = true;
-        marquee.setPointerCapture(e.pointerId);
-        startX = e.clientX;
-        scrollStart = marquee.scrollLeft;
-        // pausa animación mientras arrastra
+    // Drag para desplazar
+    var startX = 0,
+        startLeft = 0;
+    marquee.addEventListener('pointerdown', function(e) {
+        isDragging = true;
         marquee.classList.add('is-dragging');
+        try { marquee.setPointerCapture(e.pointerId); } catch (err) {}
+        startX = e.clientX;
+        startLeft = marquee.scrollLeft;
+        paused = true; // pausa mientras arrastra
     });
-    marquee.addEventListener('pointermove', (e) => {
-        if (!isDown) return;
-        const dx = e.clientX - startX;
-        marquee.scrollLeft = scrollStart - dx;
+    marquee.addEventListener('pointermove', function(e) {
+        if (!isDragging) return;
+        marquee.scrollLeft = startLeft - (e.clientX - startX);
+        wrapIfNeeded();
     });
-    marquee.addEventListener('pointerup', () => {
-        isDown = false;
+
+    function endDrag() {
+        isDragging = false;
         marquee.classList.remove('is-dragging');
-    });
-    marquee.addEventListener('pointercancel', () => {
-        isDown = false;
-        marquee.classList.remove('is-dragging');
+        pauseAuto(1000); // reanuda luego
+    }
+    marquee.addEventListener('pointerup', endDrag);
+    marquee.addEventListener('pointercancel', endDrag);
+
+    // 5) En resize, re-asegura overflow y recentra
+    var resizeTO = null;
+    window.addEventListener('resize', function() {
+        if (resizeTO) clearTimeout(resizeTO);
+        resizeTO = setTimeout(function() {
+            var prevSpeed = speed;
+            speed = 0; // pausa momentánea
+            ensureOverflow(4); // vuelve a asegurar overflow suficiente
+            positionAtCenter(); // recalc y centra
+            speed = prevSpeed; // reanuda
+        }, 150);
     });
 })();
+
+
+
+
 
 
 

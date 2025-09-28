@@ -1411,42 +1411,39 @@ body {
 
 /* Ajusta velocidad con variable (más corto = más rápido) */
 
+
+/* ===== Marquee de mascotas (loop infinito con scroll lateral) ===== */
+
+.pet-marquee {
+    overflow-x: auto;
+    overflow-y: hidden;
+    width: 100%;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+}
+
+.pet-marquee::-webkit-scrollbar {
+    height: 8px;
+}
+
+.pet-marquee::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+}
+
 .pet-track {
-    --speed: 12s;
-    /* ← antes 22–25s; ahora MÁS RÁPIDO */
     display: inline-flex;
     gap: 2rem;
     align-items: center;
-    will-change: transform;
-    animation: scroll-ltr var(--speed) linear infinite;
     padding: 6px 12px;
-}
-
-
-/* Pausa auto-scroll cuando el usuario interactúa */
-
-.pet-marquee:hover .pet-track,
-.pet-marquee:active .pet-track,
-.pet-marquee:focus-within .pet-track {
-    animation-play-state: paused;
-}
-
-
-/* Loop izquierda -> derecha */
-
-@keyframes scroll-ltr {
-    0% {
-        transform: translateX(-50%);
-    }
-    100% {
-        transform: translateX(0);
-    }
+    will-change: scroll-position;
 }
 
 .pet-image-container {
-    width: 175px;
-    height: 17px;
-    min-width: 175x;
+    width: 150px;
+    height: 150px;
+    min-width: 150px;
     border-radius: 50%;
     background: linear-gradient(-29deg, #ff1a4a, #faae42);
     display: flex;
@@ -1456,7 +1453,7 @@ body {
     flex: 0 0 auto;
     transition: transform .3s ease, box-shadow .3s ease;
     scroll-snap-align: center;
-    /* hace “snap” al centro */
+    user-select: none;
 }
 
 .pet-image-container:hover {
@@ -1471,11 +1468,18 @@ body {
 }
 
 
-/* En móvil, un poco más rápido y más compacto */
+/* Cursor al arrastrar */
+
+.pet-marquee.is-dragging {
+    cursor: grabbing;
+}
+
+.pet-marquee:not(.is-dragging) {
+    cursor: grab;
+}
 
 @media (max-width: 480px) {
     .pet-track {
-        --speed: 10s;
         gap: 1.2rem;
     }
     .pet-image-container {
