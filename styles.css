@@ -1432,6 +1432,29 @@ body {
     border-radius: 999px;
 }
 
+
+/* ===== Marquee de mascotas (loop infinito con scroll lateral) ===== */
+
+.pet-marquee {
+    overflow-x: auto;
+    overflow-y: hidden;
+    width: 100%;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    /* Sin snap para que no “pegue” el carrusel */
+    /* scroll-snap-type: x proximity; */
+    scrollbar-width: thin;
+    /* Firefox */
+}
+
+.pet-marquee::-webkit-scrollbar {
+    height: 8px;
+}
+
+.pet-marquee::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+}
+
 .pet-track {
     display: inline-flex;
     gap: 2rem;
@@ -1452,8 +1475,9 @@ body {
     overflow: hidden;
     flex: 0 0 auto;
     transition: transform .3s ease, box-shadow .3s ease;
-    scroll-snap-align: center;
     user-select: none;
+    /* Sin snap por item */
+    /* scroll-snap-align: center; */
 }
 
 .pet-image-container:hover {

@@ -635,129 +635,111 @@ document.getElementById('modal-overlay').addEventListener('click', (event) => {
 
 
 
-/* === MARQUEE INFINITO (scroll + auto + wrap) === */
-(function initPetMarquee() {
+
+
+
+/* === MARQUEE INFINITO (R→L, con fallback) === */
+(function() {
     var marquee = document.querySelector('.pet-marquee');
     if (!marquee) return;
     var track = marquee.querySelector('.pet-track');
     if (!track) return;
 
-    // 1) Duplicar contenido hasta asegurar overflow amplio
+    console.log('[marquee] init');
+
+    // 1) Toma un solo set del HTML
     var original = track.innerHTML;
 
-    function ensureOverflow(multiplier) {
-        if (multiplier === void 0) multiplier = 4;
-        track.innerHTML = original; // reset
-        while (track.scrollWidth < marquee.clientWidth * multiplier) {
-            track.innerHTML += original;
-        }
+    // 2) Construye 3 sets para poder envolver
+    track.innerHTML = original + original + original;
+
+    // 3) Ancho de un set y centrado en el set del medio
+    function unitWidth() { return track.scrollWidth / 3; }
+
+    function center() {
+        var u = unitWidth();
+        marquee.scrollLeft = u;
+        console.log('[marquee] centered at', u);
     }
-    ensureOverflow(4);
+    requestAnimationFrame(center);
+    window.addEventListener('load', center);
 
-    // 2) Medidas y centrado en el set del medio
-    var oneSetW = 0;
-
-    function computeOneSetWidth() {
-        var repeats = Math.max(1, Math.round(track.innerHTML.length / original.length));
-        return track.scrollWidth / repeats;
-    }
-
-    function positionAtCenter() {
-        oneSetW = computeOneSetWidth();
-        var repeats = Math.max(1, Math.round(track.scrollWidth / oneSetW));
-        var centerIndex = Math.floor(repeats / 2);
-        marquee.scrollLeft = centerIndex * oneSetW;
-    }
-    requestAnimationFrame(positionAtCenter);
-
-    // 3) Wrap infinito en ambos extremos
-    function wrapIfNeeded() {
-        if (!oneSetW) return;
+    // 4) Wrap infinito
+    function wrap() {
+        var u = unitWidth();
         var L = marquee.scrollLeft;
-        var totalW = track.scrollWidth;
+        var total = track.scrollWidth;
         if (L <= 0) {
-            marquee.scrollLeft = L + oneSetW;
-        } else if (L + marquee.clientWidth >= totalW - 1) {
-            marquee.scrollLeft = L - oneSetW;
+            marquee.scrollLeft = L + u;
+        } else if (L + marquee.clientWidth >= total - 1) {
+            marquee.scrollLeft = L - u;
         }
     }
-    marquee.addEventListener('scroll', wrapIfNeeded, { passive: true });
+    marquee.addEventListener('scroll', wrap, { passive: true });
 
-    // 4) Auto-scroll con pausa inteligente
+    // 5) Auto-scroll R→L (NEGATIVO)
     var paused = false;
-    var isDragging = false;
-    var speed = 1.2; // px/frame (~72 px/s a 60fps). Ajusta a gusto.
-    var resumeTimer = null;
+    var dragging = false;
+    var speed = -1.6; // más negativo = más rápido hacia la izquierda
 
-    function pauseAuto(ms) {
-        if (ms === void 0) ms = 1500;
-        paused = true;
-        if (resumeTimer) clearTimeout(resumeTimer);
-        resumeTimer = setTimeout(function() { paused = false; }, ms);
-    }
-
-    function tick() {
-        if (!paused && !isDragging && speed > 0) {
+    function rafTick() {
+        if (!paused && !dragging) {
             marquee.scrollLeft += speed;
-            wrapIfNeeded();
+            wrap();
         }
-        requestAnimationFrame(tick);
+        requestAnimationFrame(rafTick);
     }
-    requestAnimationFrame(tick);
+    requestAnimationFrame(rafTick);
 
-    // Pausas por interacción
-    marquee.addEventListener('mouseenter', function() { pauseAuto(1200); });
-    marquee.addEventListener('focusin', function() { pauseAuto(1200); });
+    // Fallback por si rAF se ralentiza en tu equipo/navegador
+    setInterval(function() {
+        if (!paused && !dragging) {
+            marquee.scrollLeft += speed;
+            wrap();
+        }
+    }, 1000 / 30); // ~30 fps de respaldo
 
-    // Rueda vertical => scroll horizontal
+    // 6) Interacciones
+    var startX = 0,
+        startL = 0;
+    marquee.addEventListener('pointerdown', function(e) {
+        dragging = true;
+        try { marquee.setPointerCapture(e.pointerId); } catch (_) {}
+        startX = e.clientX;
+        startL = marquee.scrollLeft;
+        paused = true; // pausa mientras arrastras
+    });
+    marquee.addEventListener('pointermove', function(e) {
+        if (!dragging) return;
+        marquee.scrollLeft = startL - (e.clientX - startX);
+        wrap();
+    });
+
+    function endDrag() { dragging = false;
+        paused = false; }
+    marquee.addEventListener('pointerup', endDrag);
+    marquee.addEventListener('pointercancel', endDrag);
+
+    // Desviar rueda vertical al eje X (pausa momentánea no necesaria)
     marquee.addEventListener('wheel', function(e) {
         if (e.shiftKey) return;
         if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
             marquee.scrollLeft += e.deltaY;
-            wrapIfNeeded();
-            pauseAuto(1200);
+            wrap();
             e.preventDefault();
         }
     }, { passive: false });
 
-    // Drag para desplazar
-    var startX = 0,
-        startLeft = 0;
-    marquee.addEventListener('pointerdown', function(e) {
-        isDragging = true;
-        marquee.classList.add('is-dragging');
-        try { marquee.setPointerCapture(e.pointerId); } catch (err) {}
-        startX = e.clientX;
-        startLeft = marquee.scrollLeft;
-        paused = true; // pausa mientras arrastra
-    });
-    marquee.addEventListener('pointermove', function(e) {
-        if (!isDragging) return;
-        marquee.scrollLeft = startLeft - (e.clientX - startX);
-        wrapIfNeeded();
-    });
-
-    function endDrag() {
-        isDragging = false;
-        marquee.classList.remove('is-dragging');
-        pauseAuto(1000); // reanuda luego
-    }
-    marquee.addEventListener('pointerup', endDrag);
-    marquee.addEventListener('pointercancel', endDrag);
-
-    // 5) En resize, re-asegura overflow y recentra
-    var resizeTO = null;
+    // 7) Resize: recentra
+    var to = null;
     window.addEventListener('resize', function() {
-        if (resizeTO) clearTimeout(resizeTO);
-        resizeTO = setTimeout(function() {
-            var prevSpeed = speed;
-            speed = 0; // pausa momentánea
-            ensureOverflow(4); // vuelve a asegurar overflow suficiente
-            positionAtCenter(); // recalc y centra
-            speed = prevSpeed; // reanuda
-        }, 150);
+        if (to) clearTimeout(to);
+        to = setTimeout(center, 120);
     });
 })();
+
+
+
 
 
 
