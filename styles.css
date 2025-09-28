@@ -1444,9 +1444,9 @@ body {
 }
 
 .pet-image-container {
-    width: 165px;
-    height: 165px;
-    min-width: 165px;
+    width: 175px;
+    height: 17px;
+    min-width: 175x;
     border-radius: 50%;
     background: linear-gradient(-29deg, #ff1a4a, #faae42);
     display: flex;
