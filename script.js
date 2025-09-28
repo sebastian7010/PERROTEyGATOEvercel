@@ -628,6 +628,47 @@ document.getElementById('modal-overlay').addEventListener('click', (event) => {
         closeModal();
     }
 });
+// === Scroll lateral cómodo para la marquee ===
+(function enableMarqueeScroll() {
+    const marquee = document.querySelector('.pet-marquee');
+    if (!marquee) return;
+
+    // Desvía la rueda vertical al eje X
+    marquee.addEventListener('wheel', (e) => {
+        // Si hay shift, respeta comportamiento nativo
+        if (e.shiftKey) return;
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+            marquee.scrollLeft += e.deltaY;
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    // Drag (click y arrastrar) para desplazar
+    let isDown = false,
+        startX = 0,
+        scrollStart = 0;
+    marquee.addEventListener('pointerdown', (e) => {
+        isDown = true;
+        marquee.setPointerCapture(e.pointerId);
+        startX = e.clientX;
+        scrollStart = marquee.scrollLeft;
+        // pausa animación mientras arrastra
+        marquee.classList.add('is-dragging');
+    });
+    marquee.addEventListener('pointermove', (e) => {
+        if (!isDown) return;
+        const dx = e.clientX - startX;
+        marquee.scrollLeft = scrollStart - dx;
+    });
+    marquee.addEventListener('pointerup', () => {
+        isDown = false;
+        marquee.classList.remove('is-dragging');
+    });
+    marquee.addEventListener('pointercancel', () => {
+        isDown = false;
+        marquee.classList.remove('is-dragging');
+    });
+})();
 
 
 

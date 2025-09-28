@@ -1380,41 +1380,67 @@ body {
     }
 }
 
-.pet-marquee {
-    overflow: hidden;
-    width: 100%;
-    white-space: nowrap;
-}
 
-.pet-track {
-    display: inline-flex;
-    gap: 2rem;
-    animation: scroll-ltr 25s linear infinite;
-}
+/* ===== Marquee de mascotas (una sola fila) ===== */
 
 .pet-marquee {
-    overflow: hidden;
+    overflow-x: auto;
+    /* ← permite scroll manual */
+    overflow-y: hidden;
     width: 100%;
     white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    /* scroll suave en iOS */
+    scroll-snap-type: x proximity;
+    /* snap amable */
+    scrollbar-width: thin;
+    /* Firefox */
 }
 
+
+/* Opcional: estiliza scrollbar (WebKit/Chromium) */
+
+.pet-marquee::-webkit-scrollbar {
+    height: 8px;
+}
+
+.pet-marquee::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+}
+
+
+/* Ajusta velocidad con variable (más corto = más rápido) */
+
 .pet-track {
+    --speed: 12s;
+    /* ← antes 22–25s; ahora MÁS RÁPIDO */
     display: inline-flex;
     gap: 2rem;
     align-items: center;
     will-change: transform;
-    animation: scroll-ltr 25s linear infinite;
+    animation: scroll-ltr var(--speed) linear infinite;
+    padding: 6px 12px;
 }
+
+
+/* Pausa auto-scroll cuando el usuario interactúa */
+
+.pet-marquee:hover .pet-track,
+.pet-marquee:active .pet-track,
+.pet-marquee:focus-within .pet-track {
+    animation-play-state: paused;
+}
+
+
+/* Loop izquierda -> derecha */
 
 @keyframes scroll-ltr {
     0% {
         transform: translateX(-50%);
     }
-    /* arranca mostrando la mitad 2 */
     100% {
         transform: translateX(0);
     }
-    /* vuelve al inicio (mitad 1) */
 }
 
 .pet-image-container {
@@ -1429,10 +1455,36 @@ body {
     overflow: hidden;
     flex: 0 0 auto;
     transition: transform .3s ease, box-shadow .3s ease;
+    scroll-snap-align: center;
+    /* hace “snap” al centro */
+}
+
+.pet-image-container:hover {
+    transform: translateY(-8px) scale(1.08);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
 }
 
 .pet-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+
+/* En móvil, un poco más rápido y más compacto */
+
+@media (max-width: 480px) {
+    .pet-track {
+        --speed: 10s;
+        gap: 1.2rem;
+    }
+    .pet-image-container {
+        width: 110px;
+        height: 110px;
+        min-width: 110px;
+    }
+}
+
+.pet-marquee.is-dragging .pet-track {
+    animation-play-state: paused;
 }
