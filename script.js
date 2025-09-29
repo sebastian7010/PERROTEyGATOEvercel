@@ -148,14 +148,88 @@ function updateQuantityDisplay(productId) {
     }
 }
 
+
+// Convierte tu JSON nuevo -> esquema interno
+function normalizeProduct(p, idx) {
+    // valores seguros
+    var name = (p && p.nombre) || (p && p.name) || 'Producto';
+    var price = Number((p && p.precio) != null ? p.precio : (p && p.price) != null ? p.price : 0);
+    var image = (p && p.url) || (p && p.image) || (p && p.imagenes && p.imagenes[0]) || '';
+    var gallery = (p && Array.isArray(p.imagenes) && p.imagenes.length) ? p.imagenes.slice(0) :
+        (p && Array.isArray(p.gallery) && p.gallery.length) ? p.gallery.slice(0) :
+        (image ? [image] : []);
+
+    var descBase = (p && (p.descripcion || p.description)) || '';
+    var extras = [];
+    if (p && p.marca) extras.push('Marca: ' + p.marca);
+    if (p && p.referencia) extras.push('Ref: ' + p.referencia);
+    var description = extras.length ? (descBase ? (descBase + '\n' + extras.join(' · ')) : extras.join(' · ')) : descBase;
+
+    // categoryId: usa el que venga o mapea por texto de categoría
+    var catTxt = (p && (p['categoria producto'] || p.categoria)) || '';
+    var key = String(catTxt).trim().toLowerCase();
+
+    // AJUSTA ESTOS IDs a los de tu categories.js
+    var CAT = {
+        // Perros
+        'accesorios': 1,
+        'comida premium para perros': 2,
+        'comida para perros': 3,
+        'juguetes para perros': 4,
+        // Gatos
+        'accesorios para gatos': 5,
+        'comida premium para gatos': 6,
+        'comida para gatos': 7,
+        'juguetes para gatos': 8,
+        // Nuevas familias
+        'suplementos': 9,
+        'equinos': 9,
+        'caballos': 9,
+        'bovinos': 10,
+        'vacas': 10,
+        'aves': 11,
+        'pájaros': 11,
+        'pajaros': 11,
+        'terneros': 12,
+        'conejos': 13,
+        // Genéricos
+        'alimentos': 3 // si pones “Alimentos” llévalo a “Comida para Perros” (id 3). Cambia si necesitas otro.
+    };
+
+    var categoryId = (p && p.categoryId != null) ? Number(p.categoryId) :
+        (CAT.hasOwnProperty(key) ? CAT[key] : 1);
+
+    // id: conserva si viene, si no genera uno estable con el índice
+    var id = (p && p.id != null) ? p.id : (900000 + (idx || 0));
+
+    return {
+        id: id,
+        categoryId: categoryId,
+        name: name,
+        price: price,
+        description: description,
+        image: image,
+        gallery: gallery
+    };
+}
+
+
+/** Cargar productos desde products.json **/
 /** Cargar productos desde products.json **/
 async function loadProducts() {
     try {
         const response = await fetch('./products.json');
-        if (!response.ok) throw new Error(`Error al cargar products.json: ${response.status}`);
+        if (!response.ok) throw new Error('Error al cargar products.json: ' + response.status);
 
-        products = await response.json();
-        fuse = new Fuse(products, fuseOptions);
+        const raw = await response.json();
+        const list = Array.isArray(raw) ? raw : (raw.productos || raw.items || raw.data || []);
+        products = list.map((p, i) => normalizeProduct(p, i));
+
+        // (opcional) para depurar por consola
+        window.products = products;
+
+        // Fuse para buscar por nombre/descripcion (donde también metimos marca/ref)
+        fuse = new Fuse(products, { keys: ['name', 'description'], threshold: 0.4, ignoreLocation: true });
 
         initializePagination();
         initializeSearch();
@@ -163,6 +237,7 @@ async function loadProducts() {
         console.error('Error al cargar los productos:', error);
     }
 }
+
 
 /** Inicializar paginación **/
 function initializePagination() {
@@ -715,8 +790,10 @@ document.getElementById('modal-overlay').addEventListener('click', (event) => {
         wrap();
     });
 
-    function endDrag() { dragging = false;
-        paused = false; }
+    function endDrag() {
+        dragging = false;
+        paused = false;
+    }
     marquee.addEventListener('pointerup', endDrag);
     marquee.addEventListener('pointercancel', endDrag);
 
