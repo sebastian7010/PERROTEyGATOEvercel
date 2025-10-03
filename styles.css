@@ -1520,7 +1520,20 @@ body {
     -webkit-user-drag: none;
     user-select: none;
     pointer-events: none;
-    /* el click se registra en el <a> */
+    /* el click impacta al <a> */
+}
+
+.pet-image-container {
+    /* el enlace SÍ recibe el click */
+    pointer-events: auto;
+}
+
+.pet-marquee {
+    cursor: grab;
+}
+
+.pet-marquee.is-dragging {
+    cursor: grabbing;
 }
 
 html {
@@ -1532,6 +1545,9 @@ section,
 .pet-selection {
     scroll-margin-top: 100px;
 }
+
+
+/* ajusta a tu header */
 
 
 /* ajusta a tu header */

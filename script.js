@@ -714,64 +714,64 @@ document.getElementById('modal-overlay').addEventListener('click', (event) => {
 
 
 /* === MARQUEE INFINITO (R→L) con drag y click que navega === */
+/* === MARQUEE INFINITO (R→L) con drag y click que SÍ navega === */
 (function() {
-    var marquee = document.querySelector('.pet-marquee');
+    const marquee = document.querySelector(".pet-marquee");
     if (!marquee) return;
-    var track = marquee.querySelector('.pet-track');
+    const track = marquee.querySelector(".pet-track");
     if (!track) return;
 
-    // 1) Duplicar contenido para bucle infinito
-    var original = track.innerHTML;
+    // duplicar contenido para bucle infinito
+    const original = track.innerHTML;
     track.innerHTML = original + original + original;
 
-    function unitWidth() { return track.scrollWidth / 3; }
+    const unitWidth = () => track.scrollWidth / 3;
 
     function center() { marquee.scrollLeft = unitWidth(); }
     requestAnimationFrame(center);
-    window.addEventListener('load', center);
+    window.addEventListener("load", center);
 
-    // 2) Wrap infinito
     function wrap() {
-        var u = unitWidth();
-        var L = marquee.scrollLeft;
-        var total = track.scrollWidth;
+        const u = unitWidth();
+        const L = marquee.scrollLeft;
+        const total = track.scrollWidth;
         if (L <= 0) marquee.scrollLeft = L + u;
         else if (L + marquee.clientWidth >= total - 1) marquee.scrollLeft = L - u;
     }
-    marquee.addEventListener('scroll', wrap, { passive: true });
+    marquee.addEventListener("scroll", wrap, { passive: true });
 
-    // 3) Auto-scroll (negativo = hacia la izquierda)
-    var speed = -1.6;
-    var paused = false;
-    var dragging = false;
+    // auto-scroll
+    let speed = -1.6;
+    let paused = false;
+    let dragging = false;
 
-    function rafTick() {
+    function tick() {
         if (!paused && !dragging) {
             marquee.scrollLeft += speed;
             wrap();
         }
-        requestAnimationFrame(rafTick);
+        requestAnimationFrame(tick);
     }
-    requestAnimationFrame(rafTick);
+    requestAnimationFrame(tick);
 
-    // 4) Drag con umbral (PC/Móvil)
-    var startX = 0,
+    // drag con umbral
+    let startX = 0,
         startL = 0;
-    var DRAG_THRESHOLD = 6; // px
+    const DRAG_THRESHOLD = 6;
 
-    marquee.addEventListener('pointerdown', function(e) {
-        try { marquee.setPointerCapture(e.pointerId); } catch (_) {}
+    marquee.addEventListener("pointerdown", (e) => {
+        try { marquee.setPointerCapture(e.pointerId); } catch {}
         startX = e.clientX;
         startL = marquee.scrollLeft;
         dragging = false; // aún no es drag
-        paused = true; // pausa el auto-scroll mientras se interactúa
-        marquee.classList.add('is-dragging');
+        paused = true; // pausa auto-scroll mientras interactúas
+        marquee.classList.add("is-dragging");
     });
 
-    marquee.addEventListener('pointermove', function(e) {
-        // en desktop: e.buttons===1 implica botón presionado
+    marquee.addEventListener("pointermove", (e) => {
+        // en desktop: si no hay botón presionado, salir
         if (e.buttons !== 1) return;
-        var dx = e.clientX - startX;
+        const dx = e.clientX - startX;
         if (!dragging && Math.abs(dx) >= DRAG_THRESHOLD) dragging = true;
         if (dragging) {
             marquee.scrollLeft = startL - dx;
@@ -782,18 +782,18 @@ document.getElementById('modal-overlay').addEventListener('click', (event) => {
     function endDrag(e) {
         dragging = false;
         paused = false;
-        marquee.classList.remove('is-dragging');
-        try { marquee.releasePointerCapture(e.pointerId); } catch (_) {}
+        marquee.classList.remove("is-dragging");
+        try { marquee.releasePointerCapture(e.pointerId); } catch {}
     }
-    marquee.addEventListener('pointerup', endDrag);
-    marquee.addEventListener('pointercancel', endDrag);
-    marquee.addEventListener('pointerleave', function() {
+    marquee.addEventListener("pointerup", endDrag);
+    marquee.addEventListener("pointercancel", endDrag);
+    marquee.addEventListener("pointerleave", () => {
         dragging = false;
-        marquee.classList.remove('is-dragging');
+        marquee.classList.remove("is-dragging");
     });
 
-    // 5) Rueda vertical -> desplaza en X
-    marquee.addEventListener('wheel', function(e) {
+    // rueda vertical -> desplaza en X
+    marquee.addEventListener("wheel", (e) => {
         if (e.shiftKey) return;
         if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
             marquee.scrollLeft += e.deltaY;
@@ -802,123 +802,81 @@ document.getElementById('modal-overlay').addEventListener('click', (event) => {
         }
     }, { passive: false });
 
-    // 6) Click: si NO hubo drag, navega (anchor interno o página+hash)
-    marquee.addEventListener('click', function(e) {
-        var a = e.target && e.target.closest && e.target.closest('a.pet-image-container');
-        if (!a) return;
-
-        if (dragging) { // hubo arrastre real: no navegar
+    // IMPORTANTE: sólo cancelamos el click si hubo drag
+    marquee.addEventListener("click", (e) => {
+        if (dragging) {
             e.preventDefault();
             e.stopPropagation();
             return;
         }
-
-        // Forzar navegación (evita que otros handlers la bloqueen)
-        e.preventDefault();
-        e.stopPropagation();
-
-        // Si es hash interno (#id) y existe, scrollea suave; si es otra página, navega normal
-        var href = a.getAttribute('href');
-        if (href && href[0] === '#') {
-            var id = href.slice(1);
-            var el = document.getElementById(id);
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            else location.hash = href;
-        } else {
-            window.location.assign(href);
-        }
-    }, true); // captura: nos adelantamos a otros listeners
+        // si fue click normal, dejamos que el <a> navegue (perro/gato/etc)
+        // no hacemos nada más aquí
+    });
 })();
 
 
 
 
+/* === FIX DEFINITIVO: reset de listeners + click que navega === */
+(function() {
+    var marquee = document.querySelector('.pet-marquee');
+    if (!marquee) return;
 
+    // 1) Clonar para eliminar TODOS los listeners previos
+    var clone = marquee.cloneNode(true);
+    marquee.parentNode.replaceChild(clone, marquee);
+    marquee = clone;
 
-
-
-
-
-
-/* === Forzar navegación en los botones de animales (PC y móvil) === */
-// No navega si hubo arrastre real (>6px). Si fue click, va al href (misma página o otra + #hash).
-(function forcePetNav() {
-    var DOWN_ON_ANCHOR = false;
+    // 2) Estado mínimo para distinguir drag de click
     var startX = 0,
         startY = 0,
         moved = false;
-    var TH = 6; // umbral de arrastre en px
+    var TH = 6; // umbral en px
 
-    function isPetAnchor(el) {
-        return !!(el && el.closest && el.closest('a.pet-image-container'));
-    }
-
-    function getPetAnchor(el) {
-        return el.closest('a.pet-image-container');
-    }
-
-    // pointerdown: inicializa si el down ocurrió sobre un <a.pet-image-container>
-    document.addEventListener('pointerdown', function(e) {
-        var a = getPetAnchor(e.target);
-        if (!a) { DOWN_ON_ANCHOR = false; return; }
-        DOWN_ON_ANCHOR = true;
-        moved = false;
+    marquee.addEventListener('pointerdown', function(e) {
         startX = e.clientX;
         startY = e.clientY;
-    }, true); // captura: nos adelantamos a otros handlers
+        moved = false;
+    }, true); // captura
 
-    // pointermove: detecta si se superó el umbral de arrastre
-    document.addEventListener('pointermove', function(e) {
-        if (!DOWN_ON_ANCHOR) return;
+    marquee.addEventListener('pointermove', function(e) {
         if (Math.abs(e.clientX - startX) > TH || Math.abs(e.clientY - startY) > TH) {
             moved = true;
         }
     }, true);
 
-    // pointerup: si no hubo movimiento significativo -> forzar navegación
-    document.addEventListener('pointerup', function(e) {
-        if (!DOWN_ON_ANCHOR) return;
-        var a = getPetAnchor(e.target);
-        DOWN_ON_ANCHOR = false;
-
-        if (!a) return; // soltó fuera del anchor
-        if (moved) return; // fue drag real: no navegamos
-
-        e.preventDefault();
-        e.stopImmediatePropagation(); // corta cualquier listener que intente bloquear
-
-        var href = a.getAttribute('href');
+    // 3) Pointerup/click: si NO hubo drag, navegar forzado
+    function go(e, el) {
+        var href = el.getAttribute('href');
         if (!href) return;
 
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
         if (href[0] === '#') {
-            // hash interno
-            var id = href.slice(1);
-            var el = document.getElementById(id);
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            var id = href.slice(1),
+                tgt = document.getElementById(id);
+            if (tgt) tgt.scrollIntoView({ behavior: 'smooth', block: 'start' });
             else location.hash = href;
         } else {
-            // otra página + hash
             window.location.assign(href);
         }
+    }
+
+    marquee.addEventListener('pointerup', function(e) {
+        var a = e.target && e.target.closest && e.target.closest('a.pet-image-container');
+        if (!a) return;
+        if (moved) return; // fue drag real ⇒ no navegamos
+        go(e, a);
     }, true);
 
-    // por si algún código cancela el click: repetimos la lógica también en 'click'
-    document.addEventListener('click', function(e) {
-        if (!isPetAnchor(e.target)) return;
-        // si llegamos aquí y no hubo drag, ya lo resolvió pointerup.
-        // si algún código bloquea 'pointerup', hacemos backup:
-        if (!moved) {
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            var a = getPetAnchor(e.target);
-            if (!a) return;
-            var href = a.getAttribute('href');
-            if (href) window.location.assign(href);
-        }
+    marquee.addEventListener('click', function(e) {
+        var a = e.target && e.target.closest && e.target.closest('a.pet-image-container');
+        if (!a) return;
+        if (moved) return; // si ya detectamos drag, ignorar
+        go(e, a);
     }, true);
 })();
-
-
 
 
 
