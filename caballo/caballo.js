@@ -16,6 +16,62 @@ const fuseOptions = {
 import { categories } from './categories.js';
 
 
+// Helpers (déjalos una sola vez, arriba del archivo)
+// ---- Helpers robustos de precio ----
+function toNumberSafe(v) {
+    if (typeof v === "number") return v;
+    if (typeof v === "string") {
+        var n = Number(v.replace(/[^\d.-]/g, ""));
+        return isNaN(n) ? 0 : n;
+    }
+    return 0;
+}
+
+function fmtCOP(v) {
+    return toNumberSafe(v).toLocaleString("es-CO", { minimumFractionDigits: 0 });
+}
+
+// ---- Normalizador de productos (no usa ?. ni ??) ----
+function normalizeProduct(p) {
+    var name = (p && p.nombre) || (p && p.name) || "Producto";
+    var price = toNumberSafe((p && p.precio) || (p && p.price) || (p && p.valor) || 0);
+
+    // toma primera imagen y arma la galería
+    var image = (p && p.url) ||
+        (p && p.image) ||
+        (p && p.imagenes && p.imagenes[0]) ||
+        "";
+
+    var gallery = (p && Array.isArray(p.imagenes) && p.imagenes.length) ?
+        p.imagenes.slice(0) :
+        (p && Array.isArray(p.gallery) && p.gallery.length) ?
+        p.gallery.slice(0) :
+        (image ? [image] : []);
+
+    var id = (p && p.id != null) ?
+        p.id :
+        String(Math.random());
+
+    var categoryId = (p && p.categoryId != null) ?
+        Number(p.categoryId) :
+        1;
+
+    return {
+        id: id,
+        categoryId: categoryId,
+        name: name,
+        price: price,
+        description: (p && (p.descripcion || p.description)) || "",
+        image: image, // <- clave
+        gallery: gallery // <- clave
+    };
+}
+
+
+
+
+
+
 /** Inicializar búsqueda usando Fuse.js **/
 function initializeSearch() {
     const searchBar = document.getElementById("search-bar");
@@ -118,18 +174,32 @@ function updateQuantityDisplay(productId) {
 /** Cargar productos desde products.json **/
 async function loadProducts() {
     try {
-        const response = await fetch('./products.json');
-        if (!response.ok) throw new Error(`Error al cargar products.json: ${response.status}`);
+        const res = await fetch("./products.json");
+        if (!res.ok) throw new Error("Error al cargar products.json: " + res.status);
 
-        products = await response.json();
+        var raw = await res.json();
+        if (!Array.isArray(raw)) raw = [];
+
+        // Normaliza y deja en la variable global ya existente
+        products = raw.filter(Boolean).map(normalizeProduct);
+
+        // Re-crea el índice de Fuse con los productos normalizados
         fuse = new Fuse(products, fuseOptions);
 
+        // Inicializaciones tuyas
         initializePagination();
         initializeSearch();
+
+        // Si pintas todo al inicio:
+        if (typeof renderAllCategories === "function") {
+            renderAllCategories();
+        }
     } catch (error) {
-        console.error('Error al cargar los productos:', error);
+        console.error("Error al cargar los productos:", error);
     }
 }
+
+
 
 /** Inicializar paginación **/
 function initializePagination() {
@@ -522,24 +592,24 @@ function animateCounter(targetNumber, duration) {
 // Usamos Intersection Observer para disparar la animación cuando el contenedor es visible
 document.addEventListener('DOMContentLoaded', () => {
     const counterContainer = document.getElementById('purchases-counter-container');
-    let hasAnimated = false; // Para asegurarnos de que la animación se ejecute solo una vez
+    if (!counterContainer) return; // ⬅️ si no existe en esta página, no observes
 
-    const observerOptions = {
-        threshold: 0.3 // El callback se dispara cuando el 50% del contenedor es visible
-    };
+    let hasAnimated = false;
+    const observerOptions = { threshold: 0.3 };
 
     const observer = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
             if (entry.isIntersecting && !hasAnimated) {
                 animateCounter(1000, 1000);
                 hasAnimated = true;
-                observer.unobserve(counterContainer); // Deja de observar una vez animado
+                observer.unobserve(counterContainer);
             }
         });
     }, observerOptions);
 
     observer.observe(counterContainer);
 });
+
 
 function openModal(imageElement) {
     const modalOverlay = document.getElementById('modal-overlay');

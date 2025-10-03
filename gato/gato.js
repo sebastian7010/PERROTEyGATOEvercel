@@ -16,6 +16,62 @@ const fuseOptions = {
 import { categories } from './categories.js';
 
 
+// Helpers (déjalos una sola vez, arriba del archivo)
+// ---- Helpers robustos de precio ----
+function toNumberSafe(v) {
+    if (typeof v === "number") return v;
+    if (typeof v === "string") {
+        var n = Number(v.replace(/[^\d.-]/g, ""));
+        return isNaN(n) ? 0 : n;
+    }
+    return 0;
+}
+
+function fmtCOP(v) {
+    return toNumberSafe(v).toLocaleString("es-CO", { minimumFractionDigits: 0 });
+}
+
+// ---- Normalizador de productos (no usa ?. ni ??) ----
+function normalizeProduct(p) {
+    var name = (p && p.nombre) || (p && p.name) || "Producto";
+    var price = toNumberSafe((p && p.precio) || (p && p.price) || (p && p.valor) || 0);
+
+    // toma primera imagen y arma la galería
+    var image = (p && p.url) ||
+        (p && p.image) ||
+        (p && p.imagenes && p.imagenes[0]) ||
+        "";
+
+    var gallery = (p && Array.isArray(p.imagenes) && p.imagenes.length) ?
+        p.imagenes.slice(0) :
+        (p && Array.isArray(p.gallery) && p.gallery.length) ?
+        p.gallery.slice(0) :
+        (image ? [image] : []);
+
+    var id = (p && p.id != null) ?
+        p.id :
+        String(Math.random());
+
+    var categoryId = (p && p.categoryId != null) ?
+        Number(p.categoryId) :
+        1;
+
+    return {
+        id: id,
+        categoryId: categoryId,
+        name: name,
+        price: price,
+        description: (p && (p.descripcion || p.description)) || "",
+        image: image, // <- clave
+        gallery: gallery // <- clave
+    };
+}
+
+
+
+
+
+
 /** Inicializar búsqueda usando Fuse.js **/
 function initializeSearch() {
     const searchBar = document.getElementById("search-bar");
@@ -44,30 +100,38 @@ function renderSearchResults(results) {
         return;
     }
 
-    // Se construye un layout tipo grid para los resultados de la búsqueda.
-    let html = '<div class="search-results-grid">';
+    // Crear un DocumentFragment para una inserción más eficiente
+    const fragment = document.createDocumentFragment();
+    const gridDiv = document.createElement('div');
+    gridDiv.classList.add('search-results-grid');
+
     results.forEach(result => {
         const product = result.item;
-        html += `
-      <div class="product-card" data-id="${product.id}">
-        <img src="${product.image}" alt="${product.name}" class="product-image" data-gallery='${JSON.stringify(product.gallery && product.gallery.length ? product.gallery : [product.image])}'>
-        <div class="product-details">
-          <h3>${product.name}</h3>
-          <p>$${product.price.toLocaleString()}</p>
-          <div class="quantity-controls">
-            <button class="quantity-btn minus" data-id="${product.id}">-</button>
-            <span id="quantity-${product.id}">0</span>
-            <button class="quantity-btn plus" data-id="${product.id}">+</button>
-          </div>
-          <button class="buy-btn" onclick="buyProduct(${product.id})">Comprar</button>
-        </div>
-      </div>`;
+        const productCard = document.createElement('div');
+        productCard.classList.add('product-card');
+        productCard.dataset.id = product.id;
+        productCard.innerHTML = `
+            <img src="${product.image}" alt="${product.name}" class="product-image" data-gallery='${JSON.stringify(product.gallery && product.gallery.length ? product.gallery : [product.image])}'>
+            <div class="product-details">
+                <h3>${product.name}</h3>
+                <p>$${product.price.toLocaleString()}</p>
+                <div class="quantity-controls">
+                    <button class="quantity-btn minus" data-id="${product.id}">-</button>
+                    <span id="quantity-${product.id}">0</span>
+                    <button class="quantity-btn plus" data-id="${product.id}">+</button>
+                </div>
+                <button class="buy-btn" onclick="buyProduct(${product.id})">Comprar</button>
+            </div>`;
+        gridDiv.appendChild(productCard);
     });
-    html += '</div>';
-    container.innerHTML = html;
+
+    fragment.appendChild(gridDiv);
+    container.appendChild(fragment);
+
     attachEventListeners();
-    assignImageClickEvents(); // Agrega esta línea para asignar el evento clic a las imágenes
+    assignImageClickEvents();
 }
+
 
 
 /** Actualiza el carrito flotante (floating cart)
@@ -110,18 +174,32 @@ function updateQuantityDisplay(productId) {
 /** Cargar productos desde products.json **/
 async function loadProducts() {
     try {
-        const response = await fetch('./products.json');
-        if (!response.ok) throw new Error(`Error al cargar products.json: ${response.status}`);
+        const res = await fetch("./products.json");
+        if (!res.ok) throw new Error("Error al cargar products.json: " + res.status);
 
-        products = await response.json();
+        var raw = await res.json();
+        if (!Array.isArray(raw)) raw = [];
+
+        // Normaliza y deja en la variable global ya existente
+        products = raw.filter(Boolean).map(normalizeProduct);
+
+        // Re-crea el índice de Fuse con los productos normalizados
         fuse = new Fuse(products, fuseOptions);
 
+        // Inicializaciones tuyas
         initializePagination();
         initializeSearch();
+
+        // Si pintas todo al inicio:
+        if (typeof renderAllCategories === "function") {
+            renderAllCategories();
+        }
     } catch (error) {
-        console.error('Error al cargar los productos:', error);
+        console.error("Error al cargar los productos:", error);
     }
 }
+
+
 
 /** Inicializar paginación **/
 function initializePagination() {
@@ -147,7 +225,7 @@ function renderCategory(categoryId) {
     const container = document.getElementById('carousels-container');
     if (!container) return;
 
-    // Filtrar los productos de la categoría
+    // Filtrar los productos correspondientes a la categoría
     const categoryProducts = products.filter(product => product.categoryId === categoryId);
     if (categoryProducts.length === 0) return;
 
@@ -176,43 +254,45 @@ function renderCategory(categoryId) {
       </div>
     `;
 
-    // Asigna nuevamente los eventos a los botones de cantidad y a las imágenes
+    // Asigna los eventos a los botones y a las imágenes
     attachEventListeners();
-    assignImageClickEvents(); // Esto asegura que, tras scroll o paginación, las imágenes respondan al clic
+    assignImageClickEvents(); // Esto es para que al hacer scroll, las imágenes respondan al click
 }
+
 
 
 /** Genera la grid de productos (disposición 6x2) con botón de compra **/
 function generateProductGrid(products) {
     let html = '<div class="carousel-page">';
-    // Itera sobre los productos
+    // Iterar a través de los productos y mostrarlos
     for (let i = 0; i < products.length; i += productsPerPage) {
         html += '<div class="carousel-row">';
         const rowProducts = products.slice(i, i + productsPerPage);
         rowProducts.forEach(product => {
-            // Utiliza product.gallery si existe; de lo contrario, product.image
+            // Usa product.gallery si existe; de lo contrario, usa product.image
             const galleryArray = product.gallery && product.gallery.length ? product.gallery : [product.image];
             const galleryData = JSON.stringify(galleryArray);
             html += `
-            <div class="product-card" data-id="${product.id}">
-              <img src="${product.image}" alt="${product.name}" class="product-image" data-gallery='${galleryData}' loading="lazy" width="300" height="300">
-              <div class="product-details">
-                <h3>${product.name}</h3>
-                <p>$${product.price.toLocaleString()}</p>
-                <div class="quantity-controls">
-                  <button class="quantity-btn minus" data-id="${product.id}">-</button>
-                  <span id="quantity-${product.id}">0</span>
-                  <button class="quantity-btn plus" data-id="${product.id}">+</button>
-                </div>
-                <button class="buy-btn" onclick="buyProduct(${product.id})">Comprar</button>
-              </div>
-            </div>`;
+        <div class="product-card" data-id="${product.id}">
+          <img src="${product.image}" alt="${product.name}" class="product-image" data-gallery='${galleryData}' loading="lazy" width="300" height="300">
+          <div class="product-details">
+            <h3>${product.name}</h3>
+            <p>$${product.price.toLocaleString()}</p>
+            <div class="quantity-controls">
+              <button class="quantity-btn minus" data-id="${product.id}">-</button>
+              <span id="quantity-${product.id}">0</span>
+              <button class="quantity-btn plus" data-id="${product.id}">+</button>
+            </div>
+            <button class="buy-btn" onclick="buyProduct(${product.id})">Comprar</button>
+          </div>
+        </div>`;
         });
         html += '</div>'; // Cierra la fila
     }
     html += '</div>'; // Cierra la página
     return html;
 }
+
 
 
 
@@ -512,24 +592,24 @@ function animateCounter(targetNumber, duration) {
 // Usamos Intersection Observer para disparar la animación cuando el contenedor es visible
 document.addEventListener('DOMContentLoaded', () => {
     const counterContainer = document.getElementById('purchases-counter-container');
-    let hasAnimated = false; // Para asegurarnos de que la animación se ejecute solo una vez
+    if (!counterContainer) return; // ⬅️ si no existe en esta página, no observes
 
-    const observerOptions = {
-        threshold: 0.3 // El callback se dispara cuando el 50% del contenedor es visible
-    };
+    let hasAnimated = false;
+    const observerOptions = { threshold: 0.3 };
 
     const observer = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
             if (entry.isIntersecting && !hasAnimated) {
                 animateCounter(1000, 1000);
                 hasAnimated = true;
-                observer.unobserve(counterContainer); // Deja de observar una vez animado
+                observer.unobserve(counterContainer);
             }
         });
     }, observerOptions);
 
     observer.observe(counterContainer);
 });
+
 
 function openModal(imageElement) {
     const modalOverlay = document.getElementById('modal-overlay');

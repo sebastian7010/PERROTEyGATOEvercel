@@ -713,49 +713,37 @@ document.getElementById('modal-overlay').addEventListener('click', (event) => {
 
 
 
-/* === MARQUEE INFINITO (R→L, con fallback) === */
+/* === MARQUEE INFINITO (R→L) con drag y click que navega === */
 (function() {
     var marquee = document.querySelector('.pet-marquee');
     if (!marquee) return;
     var track = marquee.querySelector('.pet-track');
     if (!track) return;
 
-    console.log('[marquee] init');
-
-    // 1) Toma un solo set del HTML
+    // 1) Duplicar contenido para bucle infinito
     var original = track.innerHTML;
-
-    // 2) Construye 3 sets para poder envolver
     track.innerHTML = original + original + original;
 
-    // 3) Ancho de un set y centrado en el set del medio
     function unitWidth() { return track.scrollWidth / 3; }
 
-    function center() {
-        var u = unitWidth();
-        marquee.scrollLeft = u;
-        console.log('[marquee] centered at', u);
-    }
+    function center() { marquee.scrollLeft = unitWidth(); }
     requestAnimationFrame(center);
     window.addEventListener('load', center);
 
-    // 4) Wrap infinito
+    // 2) Wrap infinito
     function wrap() {
         var u = unitWidth();
         var L = marquee.scrollLeft;
         var total = track.scrollWidth;
-        if (L <= 0) {
-            marquee.scrollLeft = L + u;
-        } else if (L + marquee.clientWidth >= total - 1) {
-            marquee.scrollLeft = L - u;
-        }
+        if (L <= 0) marquee.scrollLeft = L + u;
+        else if (L + marquee.clientWidth >= total - 1) marquee.scrollLeft = L - u;
     }
     marquee.addEventListener('scroll', wrap, { passive: true });
 
-    // 5) Auto-scroll R→L (NEGATIVO)
+    // 3) Auto-scroll (negativo = hacia la izquierda)
+    var speed = -1.6;
     var paused = false;
     var dragging = false;
-    var speed = -1.6; // más negativo = más rápido hacia la izquierda
 
     function rafTick() {
         if (!paused && !dragging) {
@@ -766,38 +754,45 @@ document.getElementById('modal-overlay').addEventListener('click', (event) => {
     }
     requestAnimationFrame(rafTick);
 
-    // Fallback por si rAF se ralentiza en tu equipo/navegador
-    setInterval(function() {
-        if (!paused && !dragging) {
-            marquee.scrollLeft += speed;
-            wrap();
-        }
-    }, 1000 / 30); // ~30 fps de respaldo
-
-    // 6) Interacciones
+    // 4) Drag con umbral (PC/Móvil)
     var startX = 0,
         startL = 0;
+    var DRAG_THRESHOLD = 6; // px
+
     marquee.addEventListener('pointerdown', function(e) {
-        dragging = true;
         try { marquee.setPointerCapture(e.pointerId); } catch (_) {}
         startX = e.clientX;
         startL = marquee.scrollLeft;
-        paused = true; // pausa mientras arrastras
-    });
-    marquee.addEventListener('pointermove', function(e) {
-        if (!dragging) return;
-        marquee.scrollLeft = startL - (e.clientX - startX);
-        wrap();
+        dragging = false; // aún no es drag
+        paused = true; // pausa el auto-scroll mientras se interactúa
+        marquee.classList.add('is-dragging');
     });
 
-    function endDrag() {
+    marquee.addEventListener('pointermove', function(e) {
+        // en desktop: e.buttons===1 implica botón presionado
+        if (e.buttons !== 1) return;
+        var dx = e.clientX - startX;
+        if (!dragging && Math.abs(dx) >= DRAG_THRESHOLD) dragging = true;
+        if (dragging) {
+            marquee.scrollLeft = startL - dx;
+            wrap();
+        }
+    });
+
+    function endDrag(e) {
         dragging = false;
         paused = false;
+        marquee.classList.remove('is-dragging');
+        try { marquee.releasePointerCapture(e.pointerId); } catch (_) {}
     }
     marquee.addEventListener('pointerup', endDrag);
     marquee.addEventListener('pointercancel', endDrag);
+    marquee.addEventListener('pointerleave', function() {
+        dragging = false;
+        marquee.classList.remove('is-dragging');
+    });
 
-    // Desviar rueda vertical al eje X (pausa momentánea no necesaria)
+    // 5) Rueda vertical -> desplaza en X
     marquee.addEventListener('wheel', function(e) {
         if (e.shiftKey) return;
         if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
@@ -807,18 +802,121 @@ document.getElementById('modal-overlay').addEventListener('click', (event) => {
         }
     }, { passive: false });
 
-    // 7) Resize: recentra
-    var to = null;
-    window.addEventListener('resize', function() {
-        if (to) clearTimeout(to);
-        to = setTimeout(center, 120);
-    });
+    // 6) Click: si NO hubo drag, navega (anchor interno o página+hash)
+    marquee.addEventListener('click', function(e) {
+        var a = e.target && e.target.closest && e.target.closest('a.pet-image-container');
+        if (!a) return;
+
+        if (dragging) { // hubo arrastre real: no navegar
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+
+        // Forzar navegación (evita que otros handlers la bloqueen)
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Si es hash interno (#id) y existe, scrollea suave; si es otra página, navega normal
+        var href = a.getAttribute('href');
+        if (href && href[0] === '#') {
+            var id = href.slice(1);
+            var el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            else location.hash = href;
+        } else {
+            window.location.assign(href);
+        }
+    }, true); // captura: nos adelantamos a otros listeners
 })();
 
 
 
 
 
+
+
+
+
+
+
+/* === Forzar navegación en los botones de animales (PC y móvil) === */
+// No navega si hubo arrastre real (>6px). Si fue click, va al href (misma página o otra + #hash).
+(function forcePetNav() {
+    var DOWN_ON_ANCHOR = false;
+    var startX = 0,
+        startY = 0,
+        moved = false;
+    var TH = 6; // umbral de arrastre en px
+
+    function isPetAnchor(el) {
+        return !!(el && el.closest && el.closest('a.pet-image-container'));
+    }
+
+    function getPetAnchor(el) {
+        return el.closest('a.pet-image-container');
+    }
+
+    // pointerdown: inicializa si el down ocurrió sobre un <a.pet-image-container>
+    document.addEventListener('pointerdown', function(e) {
+        var a = getPetAnchor(e.target);
+        if (!a) { DOWN_ON_ANCHOR = false; return; }
+        DOWN_ON_ANCHOR = true;
+        moved = false;
+        startX = e.clientX;
+        startY = e.clientY;
+    }, true); // captura: nos adelantamos a otros handlers
+
+    // pointermove: detecta si se superó el umbral de arrastre
+    document.addEventListener('pointermove', function(e) {
+        if (!DOWN_ON_ANCHOR) return;
+        if (Math.abs(e.clientX - startX) > TH || Math.abs(e.clientY - startY) > TH) {
+            moved = true;
+        }
+    }, true);
+
+    // pointerup: si no hubo movimiento significativo -> forzar navegación
+    document.addEventListener('pointerup', function(e) {
+        if (!DOWN_ON_ANCHOR) return;
+        var a = getPetAnchor(e.target);
+        DOWN_ON_ANCHOR = false;
+
+        if (!a) return; // soltó fuera del anchor
+        if (moved) return; // fue drag real: no navegamos
+
+        e.preventDefault();
+        e.stopImmediatePropagation(); // corta cualquier listener que intente bloquear
+
+        var href = a.getAttribute('href');
+        if (!href) return;
+
+        if (href[0] === '#') {
+            // hash interno
+            var id = href.slice(1);
+            var el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            else location.hash = href;
+        } else {
+            // otra página + hash
+            window.location.assign(href);
+        }
+    }, true);
+
+    // por si algún código cancela el click: repetimos la lógica también en 'click'
+    document.addEventListener('click', function(e) {
+        if (!isPetAnchor(e.target)) return;
+        // si llegamos aquí y no hubo drag, ya lo resolvió pointerup.
+        // si algún código bloquea 'pointerup', hacemos backup:
+        if (!moved) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            var a = getPetAnchor(e.target);
+            if (!a) return;
+            var href = a.getAttribute('href');
+            if (href) window.location.assign(href);
+        }
+    }, true);
+})();
 
 
 

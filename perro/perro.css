@@ -742,3 +742,14 @@ body {
         padding: 0.5rem 1rem;
     }
 }
+
+html {
+    scroll-behavior: smooth;
+}
+
+#catalogo-perros {
+    scroll-margin-top: 100px;
+}
+
+
+/* ajusta 100px a la altura de tu header */

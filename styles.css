@@ -1512,3 +1512,26 @@ body {
         min-width: 110px;
     }
 }
+
+.pet-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    -webkit-user-drag: none;
+    user-select: none;
+    pointer-events: none;
+    /* el click se registra en el <a> */
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+section,
+.carousel-section,
+.pet-selection {
+    scroll-margin-top: 100px;
+}
+
+
+/* ajusta a tu header */
