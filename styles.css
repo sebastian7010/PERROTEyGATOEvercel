@@ -1383,20 +1383,6 @@ body {
 
 /* ===== Marquee de mascotas (una sola fila) ===== */
 
-.pet-marquee {
-    overflow-x: auto;
-    /* ← permite scroll manual */
-    overflow-y: hidden;
-    width: 100%;
-    white-space: nowrap;
-    -webkit-overflow-scrolling: touch;
-    /* scroll suave en iOS */
-    scroll-snap-type: x proximity;
-    /* snap amable */
-    scrollbar-width: thin;
-    /* Firefox */
-}
-
 
 /* Opcional: estiliza scrollbar (WebKit/Chromium) */
 
@@ -1420,7 +1406,6 @@ body {
     width: 100%;
     white-space: nowrap;
     -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x proximity;
     scrollbar-width: thin;
 }
 
@@ -1513,18 +1498,31 @@ body {
     }
 }
 
+
+/* === FIX MARQUEE: anular snap y dejar clic nativo === */
+
+.pet-marquee {
+    scroll-snap-type: none !important;
+    touch-action: pan-x;
+    user-select: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.pet-track {
+    display: inline-flex;
+    gap: 2rem;
+}
+
+
+/* El click le cae al <a>, no al <img> dentro */
+
 .pet-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
     -webkit-user-drag: none;
     user-select: none;
     pointer-events: none;
-    /* el click impacta al <a> */
 }
 
 .pet-image-container {
-    /* el enlace SÍ recibe el click */
     pointer-events: auto;
 }
 
@@ -1536,18 +1534,14 @@ body {
     cursor: grabbing;
 }
 
-html {
-    scroll-behavior: smooth;
+.pet-marquee {
+    overflow-x: auto;
+    /* asegura que pueda desplazarse */
+    -webkit-tap-highlight-color: transparent;
+    /* evita “flash” en móvil */
 }
 
-section,
-.carousel-section,
-.pet-selection {
-    scroll-margin-top: 100px;
+.pet-track a.pet-image-container {
+    display: inline-block;
+    /* por si algún reset deja el <a> raro */
 }
-
-
-/* ajusta a tu header */
-
-
-/* ajusta a tu header */

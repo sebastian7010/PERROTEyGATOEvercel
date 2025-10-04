@@ -706,179 +706,147 @@ document.getElementById('modal-overlay').addEventListener('click', (event) => {
 });
 
 
+// ===== Marquee + navegación fiable (PC/móvil). Pega tal cual al final de script.js =====
+(() => {
+    const TH = 10; // px para considerar drag
 
+    function initMarquee() {
+        if (window.__marqueeInitDone) return;
 
+        const marquee = document.querySelector('.pet-marquee');
+        const track = marquee && marquee.querySelector('.pet-track');
+        if (!marquee || !track) return;
 
+        window.__marqueeInitDone = true;
 
+        // Triplicar contenido una vez
+        if (!track.__tripled) {
+            const original = track.innerHTML.trim();
+            track.innerHTML = original + original + original;
+            track.__tripled = true;
+        }
 
+        const unitWidth = () => track.scrollWidth / 3;
+        const center = () => { marquee.scrollLeft = unitWidth(); };
+        requestAnimationFrame(center);
+        window.addEventListener('load', center);
 
+        // Envolver
+        function wrap() {
+            const u = unitWidth();
+            const L = marquee.scrollLeft;
+            const total = track.scrollWidth;
+            if (L <= 0) marquee.scrollLeft = L + u;
+            else if (L + marquee.clientWidth >= total - 1) marquee.scrollLeft = L - u;
+        }
+        marquee.addEventListener('scroll', wrap, { passive: true });
 
-/* === MARQUEE INFINITO (R→L) con drag y click que navega === */
-/* === MARQUEE INFINITO (R→L) con drag y click que SÍ navega === */
-(function() {
-    const marquee = document.querySelector(".pet-marquee");
-    if (!marquee) return;
-    const track = marquee.querySelector(".pet-track");
-    if (!track) return;
+        // Autoscroll + drag
+        let speed = -3; // derecha
+        let paused = false;
+        let dragging = false;
 
-    // duplicar contenido para bucle infinito
-    const original = track.innerHTML;
-    track.innerHTML = original + original + original;
-
-    const unitWidth = () => track.scrollWidth / 3;
-
-    function center() { marquee.scrollLeft = unitWidth(); }
-    requestAnimationFrame(center);
-    window.addEventListener("load", center);
-
-    function wrap() {
-        const u = unitWidth();
-        const L = marquee.scrollLeft;
-        const total = track.scrollWidth;
-        if (L <= 0) marquee.scrollLeft = L + u;
-        else if (L + marquee.clientWidth >= total - 1) marquee.scrollLeft = L - u;
-    }
-    marquee.addEventListener("scroll", wrap, { passive: true });
-
-    // auto-scroll
-    let speed = -1.6;
-    let paused = false;
-    let dragging = false;
-
-    function tick() {
-        if (!paused && !dragging) {
-            marquee.scrollLeft += speed;
-            wrap();
+        function tick() {
+            if (!paused && !dragging) {
+                marquee.scrollLeft += speed;
+                wrap();
+            }
+            requestAnimationFrame(tick);
         }
         requestAnimationFrame(tick);
+
+        let startX = 0,
+            startY = 0,
+            startL = 0,
+            moved = 0;
+
+        marquee.addEventListener('pointerdown', (e) => {
+            // No usar setPointerCapture para no romper clic en PC
+            startX = e.clientX;
+            startY = e.clientY;
+            startL = marquee.scrollLeft;
+            moved = 0;
+            dragging = false;
+            paused = true;
+            marquee.classList.add('is-dragging');
+        });
+
+        marquee.addEventListener('pointermove', (e) => {
+            if (e.pointerType === 'mouse' && e.buttons !== 1) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            moved = Math.max(moved, Math.abs(dx), Math.abs(dy));
+            if (!dragging && moved >= TH) dragging = true;
+            if (dragging) {
+                marquee.scrollLeft = startL - dx;
+                wrap();
+            }
+        });
+
+        function endDrag() {
+            dragging = false;
+            marquee.classList.remove('is-dragging');
+            setTimeout(() => { paused = false; }, 120);
+        }
+        marquee.addEventListener('pointerup', endDrag);
+        marquee.addEventListener('pointercancel', endDrag);
+        marquee.addEventListener('pointerleave', endDrag);
+
+        // Rueda vertical => desplaza en X
+        marquee.addEventListener('wheel', (e) => {
+            if (e.shiftKey) return;
+            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                marquee.scrollLeft += e.deltaY;
+                wrap();
+                e.preventDefault();
+            }
+        }, { passive: false });
     }
-    requestAnimationFrame(tick);
 
-    // drag con umbral
-    let startX = 0,
-        startL = 0;
-    const DRAG_THRESHOLD = 6;
-
-    marquee.addEventListener("pointerdown", (e) => {
-        try { marquee.setPointerCapture(e.pointerId); } catch {}
-        startX = e.clientX;
-        startL = marquee.scrollLeft;
-        dragging = false; // aún no es drag
-        paused = true; // pausa auto-scroll mientras interactúas
-        marquee.classList.add("is-dragging");
-    });
-
-    marquee.addEventListener("pointermove", (e) => {
-        // en desktop: si no hay botón presionado, salir
-        if (e.buttons !== 1) return;
-        const dx = e.clientX - startX;
-        if (!dragging && Math.abs(dx) >= DRAG_THRESHOLD) dragging = true;
-        if (dragging) {
-            marquee.scrollLeft = startL - dx;
-            wrap();
-        }
-    });
-
-    function endDrag(e) {
-        dragging = false;
-        paused = false;
-        marquee.classList.remove("is-dragging");
-        try { marquee.releasePointerCapture(e.pointerId); } catch {}
-    }
-    marquee.addEventListener("pointerup", endDrag);
-    marquee.addEventListener("pointercancel", endDrag);
-    marquee.addEventListener("pointerleave", () => {
-        dragging = false;
-        marquee.classList.remove("is-dragging");
-    });
-
-    // rueda vertical -> desplaza en X
-    marquee.addEventListener("wheel", (e) => {
-        if (e.shiftKey) return;
-        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-            marquee.scrollLeft += e.deltaY;
-            wrap();
-            e.preventDefault();
-        }
-    }, { passive: false });
-
-    // IMPORTANTE: sólo cancelamos el click si hubo drag
-    marquee.addEventListener("click", (e) => {
-        if (dragging) {
-            e.preventDefault();
-            e.stopPropagation();
-            return;
-        }
-        // si fue click normal, dejamos que el <a> navegue (perro/gato/etc)
-        // no hacemos nada más aquí
-    });
-})();
-
-
-
-
-/* === FIX DEFINITIVO: reset de listeners + click que navega === */
-(function() {
-    var marquee = document.querySelector('.pet-marquee');
-    if (!marquee) return;
-
-    // 1) Clonar para eliminar TODOS los listeners previos
-    var clone = marquee.cloneNode(true);
-    marquee.parentNode.replaceChild(clone, marquee);
-    marquee = clone;
-
-    // 2) Estado mínimo para distinguir drag de click
-    var startX = 0,
-        startY = 0,
-        moved = false;
-    var TH = 6; // umbral en px
-
-    marquee.addEventListener('pointerdown', function(e) {
-        startX = e.clientX;
-        startY = e.clientY;
-        moved = false;
-    }, true); // captura
-
-    marquee.addEventListener('pointermove', function(e) {
-        if (Math.abs(e.clientX - startX) > TH || Math.abs(e.clientY - startY) > TH) {
-            moved = true;
-        }
+    // Navegación a prueba de otros listeners (PC/móvil)
+    const downPos = new WeakMap();
+    document.addEventListener('pointerdown', (e) => {
+        const a = e.target.closest('.pet-marquee a.pet-image-container');
+        if (!a) return;
+        downPos.set(a, { x: e.clientX, y: e.clientY });
     }, true);
 
-    // 3) Pointerup/click: si NO hubo drag, navegar forzado
-    function go(e, el) {
-        var href = el.getAttribute('href');
+    document.addEventListener('pointerup', (e) => {
+        const a = e.target.closest('.pet-marquee a.pet-image-container');
+        if (!a) return;
+
+        if (e.ctrlKey || e.metaKey || e.button === 1) return; // nueva pestaña
+
+        const p = downPos.get(a) || { x: e.clientX, y: e.clientY };
+        const dx = Math.abs((e.clientX || 0) - (p.x || 0));
+        const dy = Math.abs((e.clientY || 0) - (p.y || 0));
+        const moved = Math.max(dx, dy);
+
+        if (moved >= TH) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return;
+        }
+
+        const href = a.getAttribute('href');
         if (!href) return;
+
+        if (href.charAt(0) === '#') {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            const el = document.getElementById(href.slice(1));
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            else location.hash = href;
+            return;
+        }
 
         e.preventDefault();
         e.stopImmediatePropagation();
-
-        if (href[0] === '#') {
-            var id = href.slice(1),
-                tgt = document.getElementById(id);
-            if (tgt) tgt.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            else location.hash = href;
-        } else {
-            window.location.assign(href);
-        }
-    }
-
-    marquee.addEventListener('pointerup', function(e) {
-        var a = e.target && e.target.closest && e.target.closest('a.pet-image-container');
-        if (!a) return;
-        if (moved) return; // fue drag real ⇒ no navegamos
-        go(e, a);
+        setTimeout(() => { window.location.href = href; }, 0);
     }, true);
 
-    marquee.addEventListener('click', function(e) {
-        var a = e.target && e.target.closest && e.target.closest('a.pet-image-container');
-        if (!a) return;
-        if (moved) return; // si ya detectamos drag, ignorar
-        go(e, a);
-    }, true);
+    document.addEventListener('DOMContentLoaded', () => {
+        initMarquee();
+        setTimeout(initMarquee, 300);
+    });
 })();
-
-
-
-window.openModal = openModal;
-window.assignImageClickEvents = assignImageClickEvents;
