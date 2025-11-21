@@ -230,7 +230,7 @@ document.addEventListener("DOMContentLoaded", function() {
 function handleSingleBuyClick(id, name, price) {
     const priceNum = Number(price || 0);
     const message = `Hola, estoy interesado en comprar el producto: ${name} (ID: ${id}). Precio: $${priceNum.toLocaleString('es-CO')}`;
-    const phone = "57300 5318412";
+    const phone = "573005318412";
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
 }
@@ -435,7 +435,7 @@ function sendCartToWhatsApp() {
         return;
     }
     message += `\nTotal a pagar: $${totalPrice.toLocaleString('es-CO')}`;
-    const phone = "57300 5318412";
+    const phone = "573005318412";
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
 }
