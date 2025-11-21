@@ -386,7 +386,7 @@ function buyProduct(productId) {
 
 
     // Número de WhatsApp (asegúrate de que esté en el formato correcto, sin símbolos ni espacios)
-    const phone = "573108853158";
+    const phone = "57300 5318412";
 
     // Se crea la URL con el mensaje codificado
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
@@ -478,7 +478,7 @@ function sendCartToWhatsApp() {
     }
 
     message += `\nTotal a pagar: $${totalPrice.toLocaleString()}`;
-    const phone = "573108853158";
+    const phone = "57300 5318412";
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
 }
@@ -591,7 +591,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 function goToWhatsAppContact() {
-    const phone = "573108853158"; // Asegúrate de que este número esté en el formato correcto (código de país sin símbolos)
+    const phone = "57300 5318412"; // Asegúrate de que este número esté en el formato correcto (código de país sin símbolos)
     const message = "Hola quiero comprar algunos de sus productos";
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
