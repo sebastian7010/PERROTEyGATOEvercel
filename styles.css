@@ -1694,3 +1694,14 @@ body {
     display: inline-block;
     /* por si algún reset deja el <a> raro */
 }
+
+.product-image {
+    width: 100%;
+    height: auto;
+    background: #f5f5f5;
+    transition: filter 0.25s ease-out;
+}
+
+.product-image.loaded {
+    filter: none;
+}

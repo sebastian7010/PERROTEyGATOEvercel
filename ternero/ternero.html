@@ -4,54 +4,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> para Terneros</title>
+    <title> para Perros</title>
     <link rel="stylesheet" href="ternero.css">
 </head>
 
 <body>
     <header class="header">
         <nav class="navbar">
-            <h1 class="navbar-title">Productos para Terneros</h1>
+            <h1 class="navbar-title">Productos para terneros</h1>
             <ul>
                 <li><a href="../index.html" class="nav-link">Inicio</a></li>
                 <li><a href="https://wa.me/573005318412" class="nav-link" target="_blank" rel="noopener noreferrer">Contacto</a></li>
             </ul>
-
         </nav>
-
-
-
     </header>
 
     <main class="main-content">
         <section class="search-section">
             <div class="search-bar-container">
                 <img src="../assets/lupa.svg" alt="Lupa" class="icon-lupa">
-                <input type="text" id="search-bar" class="search-bar" placeholder="Buscar productos para perros, gatos, caballos, vacas, terneros y pájaros">
-
+                <input type="text" id="search-bar" class="search-bar" placeholder="Buscar productos para perros...">
             </div>
         </section>
     </main>
 
+
     <section class="button-section">
-        <button class="filter-btn" data-category="Accesorios para Perros">Accesorios para Terneros</button>
-        <button class="filter-btn" data-category="Comida premium para perros">Comida Premium para Terneros</button>
+        <button class="filter-btn" data-category="Alimentos para terneros">Alimentos para terneros</button>
+        <button class="filter-btn" data-category="Alimentos premiun para terneros">Alimentos premiun para terneros</button>
+
     </section>
 
 
 
-
-
-    <div id="carousels-container"></div>
-
+    <section id="carousels-container" class="carousels-container">
+        <!-- Carruseles dinámicos para perros se generarán aquí -->
+    </section>
 
     <div id="floating-cart" class="floating-cart" onclick="sendCartToWhatsApp()">
-        <!-- Texto de la cajita (se muestra solo cuando hay productos) -->
         <span class="cart-pill-label">Comprar</span>
 
-        <!-- Botón redondo del carrito -->
         <div class="cart-bubble">
-            <img src="assets/noun-purchase-2804281.svg" alt="Carrito" class="cart-icon">
+            <img src="../assets/noun-purchase-2804281.svg" alt="Carrito" class="cart-icon">
             <span id="cart-count" class="cart-count">0</span>
         </div>
     </div>
@@ -71,8 +65,7 @@
             <div class="footer-section">
                 <h3>Contacto</h3>
                 <p><i class="fas fa-phone"></i> +57 3002536267</p>
-                <p><i class="fas fa-envelope"></i> somos@perroteygatote.com
-                </p>
+                <p><i class="fas fa-envelope"></i> somos@perroteygatote.com</p>
             </div>
             <div class="footer-section">
                 <h3>Suscríbete</h3>
@@ -98,10 +91,9 @@
                     </a>
                 </div>
             </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2025 TOLENTINOS.S.A.S. Todos los derechos reservados.</p>
-        </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 TOLENTINOS.S.A.S. Todos los derechos reservados.</p>
+            </div>
     </footer>
 
 
@@ -113,9 +105,10 @@
             </div>
         </div>
     </div>
-    <script src="https://unpkg.com/fuse.js/dist/fuse.js"></script>
 
+    <script src="https://unpkg.com/fuse.js/dist/fuse.js"></script>
     <script type="module" src="ternero.js"></script>
+
 </body>
 
 </html>

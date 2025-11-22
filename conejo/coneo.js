@@ -150,24 +150,66 @@ function updateFloatingCart(productId, change) {
 }
 
 /** Actualiza la visualización del contador en el carrito flotante **/
+function updateFloatingCart(productId, change) {
+    // Asegurar ID como string
+    productId = String(productId);
+
+    // Inicializar contador si no existe
+    if (!cart[productId]) {
+        cart[productId] = 0;
+    }
+
+    // Sumar o restar
+    cart[productId] += change;
+
+    // Nunca dejar valores negativos
+    if (cart[productId] < 0) cart[productId] = 0;
+
+    // Actualizar la vista del carrito
+    updateCartDisplay();
+
+    // ANIMACIÓN: si se está sumando un producto (+), hacer girar el carrito
+    if (change > 0) {
+        const floatingCartElem = document.getElementById("floating-cart");
+        if (floatingCartElem) {
+            floatingCartElem.classList.add("cart-spin");
+
+            // Quitar clase después de la animación
+            setTimeout(() => {
+                floatingCartElem.classList.remove("cart-spin");
+            }, 450);
+        }
+    }
+}
+
+
+/** Actualiza el número y la caja "Comprar" del carrito flotante **/
 function updateCartDisplay() {
     let total = 0;
+
+    // Calcular total de items en el carrito
     for (const id in cart) {
         total += cart[id];
     }
+
     const cartCountElem = document.getElementById("cart-count");
+    const floatingCartElem = document.getElementById("floating-cart");
+
+    /** Mostrar número de items dentro del círculo */
     if (cartCountElem) {
         cartCountElem.textContent = total;
         cartCountElem.style.display = total > 0 ? "flex" : "none";
     }
-}
 
-/** Actualiza la cantidad mostrada en cada tarjeta de producto **/
-function updateQuantityDisplay(productId) {
-    productId = String(productId);
-    const quantityElem = document.getElementById(`quantity-${productId}`);
-    if (quantityElem) {
-        quantityElem.textContent = cart[productId] || 0;
+    /** ACTIVAR / DESACTIVAR la caja "Comprar" */
+    if (floatingCartElem) {
+        if (total > 0) {
+            // Mostrar la caja blanca
+            floatingCartElem.classList.add("has-items");
+        } else {
+            // Volver al modo burbuja
+            floatingCartElem.classList.remove("has-items");
+        }
     }
 }
 

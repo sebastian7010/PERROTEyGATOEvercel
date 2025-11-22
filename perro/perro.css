@@ -404,37 +404,184 @@ body {
     position: fixed;
     bottom: 33px;
     right: 20px;
-    background-color: #00df82;
-    border: 2px solid #45a049;
-    border-radius: 50%;
-    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px;
+    border-radius: 999px;
+    background: transparent;
     box-shadow: 0px 8px 15px #25d365bc;
     cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    z-index: 1000;
+    z-index: 9999;
+    overflow: visible;
+    transition: background 0.25s ease, padding 0.25s ease, box-shadow 0.25s ease;
+    max-width: calc(100% - 32px);
+    width: auto;
+    height: auto;
 }
 
-.floating-cart:hover {
-    transform: scale(1.2);
-    box-shadow: 0px 12px 20px #45a049c0;
+
+/* ===== ESTADO SIN PRODUCTOS ===== */
+
+
+/* Solo se ve el círculo verde */
+
+.floating-cart .cart-pill-label {
+    display: none;
+    opacity: 0;
+    max-width: 0;
+    margin-right: 0;
+    padding: 0;
 }
 
-.floating-cart .cart-icon {
-    width: 50px;
-    height: 50px;
+
+/* ===== ESTADO CON PRODUCTOS (.has-items) ===== */
+
+
+/* Aparece la pastilla blanca con texto */
+
+.floating-cart.has-items {
+    background: #ffffff;
+    padding: 6px 12px 6px 16px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
 }
 
-.floating-cart .cart-count {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background-color: #ffffff;
-    color: #000000;
-    font-weight: bold;
-    font-size: 14px;
+.floating-cart.has-items .cart-pill-label {
+    display: inline-block !important;
+    /* que NO se oculte en ningún media query */
+    opacity: 1;
+    max-width: 130px;
+    margin-right: 4px;
+    padding: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #111;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: opacity 0.25s ease, max-width 0.25s ease;
+}
+
+
+/* Burbuja verde del carrito */
+
+.cart-bubble {
+    position: relative;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
-    padding: 1px 5px;
+    background: #00df82;
+    border: 2px solid #45a049;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0px 8px 15px #25d365bc;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    flex-shrink: 0;
+    /* no se deforma ni se achica */
+}
+
+.floating-cart:hover .cart-bubble {
+    transform: scale(1.08);
+    box-shadow: 0 12px 22px #45a049c0;
+}
+
+.cart-icon {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+
+
+/* Contador dentro de la burbuja */
+
+.cart-count {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #000000;
+    font-weight: 700;
+    font-size: 13px;
+    display: none;
+    /* JS la pone en display:flex cuando total > 0 */
+    align-items: center;
+    justify-content: center;
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+
+/* Animación de giro cuando se agrega producto */
+
+@keyframes cart-rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    50% {
+        transform: rotate(180deg) scale(1.1);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.floating-cart.cart-spin .cart-bubble {
+    animation: cart-rotate 0.45s ease;
+}
+
+
+/* ================== RESPONSIVE ================== */
+
+
+/* Ajustes generales para móviles (no fijamos width/height al carrito) */
+
+@media (max-width: 600px) {
+    .floating-cart {
+        right: 12px;
+        bottom: 16px;
+        max-width: calc(100% - 24px);
+        /* margen de 12px a cada lado */
+    }
+    .floating-cart.has-items {
+        padding: 6px 10px 6px 12px;
+        justify-content: flex-start;
+    }
+    .floating-cart.has-items .cart-pill-label {
+        font-size: 0.85rem;
+        max-width: 90px;
+    }
+    .cart-bubble {
+        width: 46px;
+        height: 46px;
+    }
+    .cart-icon {
+        width: 24px;
+        height: 24px;
+    }
+    .cart-count {
+        min-width: 20px;
+        height: 20px;
+        font-size: 12px;
+    }
+    /* En móvil, sin “zoom” al hover para que no se salga */
+    .floating-cart:hover .cart-bubble {
+        transform: none;
+        box-shadow: 0px 8px 15px #25d365bc;
+    }
+}
+
+@media (max-width: 360px) {
+    .floating-cart.has-items .cart-pill-label {
+        font-size: 0.8rem;
+        max-width: 75px;
+    }
+    .floating-cart.has-items {
+        padding: 5px 9px 5px 10px;
+    }
 }
 
 
@@ -742,14 +889,3 @@ body {
         padding: 0.5rem 1rem;
     }
 }
-
-html {
-    scroll-behavior: smooth;
-}
-
-#catalogo-perros {
-    scroll-margin-top: 100px;
-}
-
-
-/* ajusta 100px a la altura de tu header */
