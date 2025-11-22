@@ -263,42 +263,118 @@ body {
 
 .floating-cart {
     position: fixed;
-    bottom: 30px;
+    bottom: 33px;
     right: 20px;
-    background-color: #00df82;
-    border: 2px solid #08cfad;
-    border-radius: 50%;
-    padding: 10px;
-    box-shadow: 0 8px 15px rgba(18, 140, 126, 0.5);
-    cursor: pointer;
-    z-index: 1000;
-    transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.floating-cart:hover {
-    transform: scale(1.1);
-    box-shadow: 0 12px 20px rgba(18, 140, 126, 0.7);
-}
-
-.floating-cart .cart-icon {
-    width: 40px;
-    height: 40px;
-}
-
-.floating-cart .cart-count {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background-color: rgb(251, 248, 248);
-    color: rgb(0, 0, 0);
-    font-size: 0.8rem;
-    font-weight: bold;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
     display: flex;
-    justify-content: center;
     align-items: center;
+    gap: 10px;
+    padding: 6px;
+    border-radius: 999px;
+    background: transparent;
+    cursor: pointer;
+    z-index: 9999;
+    overflow: visible;
+    transition: background 0.25s ease, padding 0.25s ease;
+}
+
+
+/* Estado sin productos — solo burbuja verde */
+
+.floating-cart .cart-pill-label {
+    display: none;
+    opacity: 0;
+    max-width: 0;
+}
+
+
+/* Estado con productos — aparece caja blanca */
+
+.floating-cart.has-items {
+    background: #ffffff;
+    padding: 6px 12px 6px 16px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
+}
+
+.floating-cart.has-items .cart-pill-label {
+    display: inline-block;
+    opacity: 1;
+    max-width: 130px;
+    margin-right: 6px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #111;
+}
+
+
+/* Burbuja verde */
+
+.cart-bubble {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #00df82;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: transform 0.3s ease;
+}
+
+.cart-icon {
+    width: 30px;
+    height: 30px;
+}
+
+.cart-count {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: white;
+    color: black;
+    font-size: 13px;
+    font-weight: 700;
+    display: none;
+}
+
+
+/* Animación de giro */
+
+@keyframes cart-rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    50% {
+        transform: rotate(180deg) scale(1.1);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.floating-cart.cart-spin .cart-bubble {
+    animation: cart-rotate 0.45s ease;
+}
+
+
+/* Responsive */
+
+@media (max-width: 600px) {
+    .floating-cart {
+        right: 12px;
+        bottom: 16px;
+    }
+    .cart-bubble {
+        width: 46px;
+        height: 46px;
+    }
+    .cart-icon {
+        width: 24px;
+        height: 24px;
+    }
 }
 
 

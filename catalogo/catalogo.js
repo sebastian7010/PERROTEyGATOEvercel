@@ -267,29 +267,32 @@ window.handleSingleBuyClick = handleSingleBuyClick;
 /* ===========================
    Carrito flotante: utilidades
    =========================== */
-function updateFloatingCart(productId, change) {
-    productId = String(productId);
-    if (!cart[productId]) cart[productId] = 0;
-    cart[productId] += change;
-    if (cart[productId] < 0) cart[productId] = 0;
-    updateCartDisplay();
-}
-
 function updateCartDisplay() {
     let total = 0;
     for (const id in cart) total += cart[id];
+
     const cartCountElem = document.getElementById("cart-count");
+    const floatingCart = document.getElementById("floating-cart");
+
     if (cartCountElem) {
         cartCountElem.textContent = String(total);
         cartCountElem.style.display = total > 0 ? "flex" : "none";
     }
+
+    if (!floatingCart) return;
+
+    if (total > 0) {
+        floatingCart.classList.add("has-items");
+
+        floatingCart.classList.remove("cart-spin");
+        void floatingCart.offsetWidth;
+        floatingCart.classList.add("cart-spin");
+
+    } else {
+        floatingCart.classList.remove("has-items");
+    }
 }
 
-function updateQuantityDisplay(productId) {
-    productId = String(productId);
-    const quantityElem = document.getElementById(`quantity-${productId}`);
-    if (quantityElem) quantityElem.textContent = String(cart[productId] || 0);
-}
 
 /* =======================================
    Eventos de cantidad en cada product card
