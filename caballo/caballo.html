@@ -47,9 +47,16 @@
 
 
     <div id="floating-cart" class="floating-cart" onclick="sendCartToWhatsApp()">
-        <img src="../assets/noun-purchase-2804281.svg" alt="Carrito" class="cart-icon">
-        <span id="cart-count" class="cart-count">0</span>
+        <!-- Texto de la cajita (se muestra solo cuando hay productos) -->
+        <span class="cart-pill-label">Comprar</span>
+
+        <!-- Botón redondo del carrito -->
+        <div class="cart-bubble">
+            <img src="assets/noun-purchase-2804281.svg" alt="Carrito" class="cart-icon">
+            <span id="cart-count" class="cart-count">0</span>
+        </div>
     </div>
+
 
     <footer class="footer">
         <div class="footer-content">

@@ -115,29 +115,58 @@ function renderSearchResults(results) {
  *  Se actualiza la cantidad del producto en el objeto 'cart'
  *  y se actualiza el contador global.
  **/
+// Actualiza el carrito flotante cuando se suma/resta un producto
 function updateFloatingCart(productId, change) {
-    // Aseguramos que productId se trate como string
+    // Aseguramos que productId sea string
     productId = String(productId);
+
     if (!cart[productId]) {
         cart[productId] = 0;
     }
+
     cart[productId] += change;
     if (cart[productId] < 0) cart[productId] = 0;
+
+    // Actualiza contador y estado visual (.has-items)
     updateCartDisplay();
+
+    // Si estamos agregando producto, hacer giro del carrito
+    if (change > 0) {
+        const floatingCartElem = document.getElementById("floating-cart");
+        if (floatingCartElem) {
+            floatingCartElem.classList.add("cart-spin");
+            setTimeout(() => {
+                floatingCartElem.classList.remove("cart-spin");
+            }, 450);
+        }
+    }
 }
 
-/** Actualiza la visualización del contador en el carrito flotante **/
+// Actualiza contador y muestra/oculta la pastilla "Comprar"
 function updateCartDisplay() {
     let total = 0;
     for (const id in cart) {
         total += cart[id];
     }
+
     const cartCountElem = document.getElementById("cart-count");
+    const floatingCartElem = document.getElementById("floating-cart");
+
     if (cartCountElem) {
         cartCountElem.textContent = total;
         cartCountElem.style.display = total > 0 ? "flex" : "none";
     }
+
+    if (floatingCartElem) {
+        if (total > 0) {
+            floatingCartElem.classList.add("has-items");
+        } else {
+            floatingCartElem.classList.remove("has-items");
+        }
+    }
 }
+
+
 
 /** Actualiza la cantidad mostrada en cada tarjeta de producto **/
 function updateQuantityDisplay(productId) {
