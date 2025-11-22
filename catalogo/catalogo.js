@@ -297,6 +297,59 @@ function updateCartDisplay() {
 /* =======================================
    Eventos de cantidad en cada product card
    ======================================= */
+/* =====================
+   Actualizar el carrito
+   ===================== */
+function updateFloatingCart(productId, change) {
+    productId = String(productId);
+
+    if (!cart[productId]) {
+        cart[productId] = 0;
+    }
+
+    cart[productId] += change;
+
+    if (cart[productId] < 0) cart[productId] = 0;
+
+    updateCartDisplay();
+
+    // Girar el carrito solo si se está agregando (+)
+    if (change > 0) {
+        const floatingCart = document.getElementById("floating-cart");
+        if (floatingCart) {
+            floatingCart.classList.remove("cart-spin");
+            void floatingCart.offsetWidth;
+            floatingCart.classList.add("cart-spin");
+        }
+    }
+}
+
+function updateQuantityDisplay(productId) {
+    const quantityElement = document.getElementById(`quantity-${productId}`);
+    if (quantityElement) {
+        quantityElement.textContent = cart[productId] || 0;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function attachQuantityButtons() {
     const plusButtons = document.querySelectorAll('.quantity-btn.plus');
     plusButtons.forEach(function(button) {
