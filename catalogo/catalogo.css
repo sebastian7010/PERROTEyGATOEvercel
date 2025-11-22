@@ -515,3 +515,21 @@ body {
         font-size: 1rem;
     }
 }
+
+
+/* Placeholder blur effect */
+
+.lazy-img {
+    filter: blur(0px);
+    transform: scale(1.05);
+    transition: filter .3s ease-out, transform .3s ease-out;
+    background: #f3f3f3;
+}
+
+
+/* Cuando carga la imagen real */
+
+.lazy-img.loaded {
+    filter: none;
+    transform: scale(1);
+}

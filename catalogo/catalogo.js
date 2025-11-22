@@ -224,6 +224,34 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 
+
+
+
+/** LAZY LOADING SUPER OPTIMIZADO **/
+function lazyLoadImages() {
+    const imgs = document.querySelectorAll("img.lazy-img");
+
+    const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+
+            const img = entry.target;
+            const realSrc = img.dataset.src;
+
+            if (realSrc) {
+                img.src = realSrc;
+            }
+
+            img.onload = () => img.classList.add("loaded");
+
+            obs.unobserve(img);
+        });
+    }, { threshold: 0.1 });
+
+    imgs.forEach(img => observer.observe(img));
+}
+
+
 /* ======================
    Compra rápida por WhatsApp
    ====================== */

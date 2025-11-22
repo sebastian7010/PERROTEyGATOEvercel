@@ -742,6 +742,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+// LAZY LOADING SUPER OPTIMIZADO
+function lazyLoadImages() {
+    const imgs = document.querySelectorAll('img.lazy-img');
+
+    const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+
+            const img = entry.target;
+            const realSrc = img.dataset.src;
+
+            if (!realSrc) return;
+
+            // Cargar la imagen real
+            img.src = realSrc;
+
+            // Cuando carga, quitamos el blur
+            img.onload = () => {
+                img.classList.add("loaded");
+            };
+
+            obs.unobserve(img);
+        });
+    }, {
+        threshold: 0.1
+    });
+
+    imgs.forEach(img => observer.observe(img));
+}
+
+// Ejecutarlo cuando se cargan productos
+document.addEventListener("DOMContentLoaded", lazyLoadImages);
+
+
+
+
+
+
+
 window.openModal = openModal;
 window.assignImageClickEvents = assignImageClickEvents;
 window.filterCategory = filterCategory;

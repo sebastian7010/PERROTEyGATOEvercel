@@ -889,3 +889,20 @@ body {
         padding: 0.5rem 1rem;
     }
 }
+
+
+/* Imagen borrosa inicial */
+
+.lazy-img {
+    filter: blur(0px);
+    transform: scale(1.05);
+    transition: filter .4s ease, transform .4s ease;
+}
+
+
+/* Cuando ya cargó la imagen real */
+
+.lazy-img.loaded {
+    filter: none;
+    transform: scale(1);
+}

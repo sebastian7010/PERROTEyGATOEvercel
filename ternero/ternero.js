@@ -1,4 +1,9 @@
 // Variables globales
+
+
+
+
+
 let cart = {}; // Objeto que almacenará la cantidad de cada producto (clave: productId)
 let products = []; // Lista de productos obtenida del JSON
 let fuse; // Instancia de Fuse.js para búsqueda
