@@ -97,14 +97,16 @@ function initializeSearch() {
 
             // Auto scroll cuando aparece el teclado
             setTimeout(() => {
-                const resultsContainer = document.getElementById("carousels-container");
-                if (resultsContainer) {
-                    resultsContainer.scrollIntoView({
-                        behavior: "smooth",
-                        block: "start"
-                    });
-                }
-            }, 150);
+                const searchBar = document.getElementById("search-bar");
+                if (!searchBar) return;
+
+                window.scrollTo({
+                    top: searchBar.offsetTop - 10,
+                    behavior: "smooth"
+                });
+
+            }, 200);
+
         }
     });
 }
