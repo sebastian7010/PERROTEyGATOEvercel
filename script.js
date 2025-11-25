@@ -92,6 +92,43 @@ function initializeSearch() {
     });
 }
 
+
+
+// Cuando el usuario escribe, subir la vista automáticamente para que NO tape el teclado
+function autoScrollWhenTyping() {
+    const searchInput = document.getElementById("search-bar");
+    const resultsContainer = document.getElementById("carousels-container");
+
+    if (!searchInput || !resultsContainer) return;
+
+    searchInput.addEventListener("focus", () => {
+        setTimeout(() => {
+            resultsContainer.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }, 300); // tiempo necesario para que el teclado se abra
+    });
+
+    searchInput.addEventListener("input", () => {
+        setTimeout(() => {
+            resultsContainer.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }, 150);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    autoScrollWhenTyping();
+});
+
+
+
+
+
+
 /** Renderizar los resultados de la búsqueda **/
 function renderSearchResults(results) {
     const container = document.getElementById('carousels-container');
