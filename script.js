@@ -81,51 +81,33 @@ function initializeSearch() {
 
     searchBar.addEventListener("input", () => {
         const query = searchBar.value.trim();
+        const hideables = document.querySelectorAll(".hide-on-search");
+
         if (query === "") {
-            // Si no hay texto, se muestran todas las categorías
+            // Mostrar todo nuevamente
+            hideables.forEach(el => el.classList.remove("hidden-on-search"));
             renderAllCategories();
         } else {
-            // Se buscan los productos que coincidan con el query
+            // Ocultar secciones (botón, animales, etc.)
+            hideables.forEach(el => el.classList.add("hidden-on-search"));
+
+            // Buscar productos normalmente
             const results = fuse.search(query);
             renderSearchResults(results);
+
+            // Auto scroll cuando aparece el teclado
+            setTimeout(() => {
+                const resultsContainer = document.getElementById("carousels-container");
+                if (resultsContainer) {
+                    resultsContainer.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start"
+                    });
+                }
+            }, 150);
         }
     });
 }
-
-
-
-// Cuando el usuario escribe, subir la vista automáticamente para que NO tape el teclado
-function autoScrollWhenTyping() {
-    const searchInput = document.getElementById("search-bar");
-    const resultsContainer = document.getElementById("carousels-container");
-
-    if (!searchInput || !resultsContainer) return;
-
-    searchInput.addEventListener("focus", () => {
-        setTimeout(() => {
-            resultsContainer.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-        }, 300); // tiempo necesario para que el teclado se abra
-    });
-
-    searchInput.addEventListener("input", () => {
-        setTimeout(() => {
-            resultsContainer.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-        }, 150);
-    });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    autoScrollWhenTyping();
-});
-
-
-
 
 
 

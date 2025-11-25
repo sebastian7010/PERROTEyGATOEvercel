@@ -1705,3 +1705,9 @@ body {
 .product-image.loaded {
     filter: none;
 }
+
+.hidden-on-search {
+    display: none !important;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
