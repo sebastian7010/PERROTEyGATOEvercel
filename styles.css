@@ -1722,58 +1722,90 @@ body {
 }
 
 
-/* Caja general */
+/* ==== CONTENEDOR DE SUGERENCIAS ==== */
 
-.suggestions-box {
+#search-suggestions {
     position: absolute;
-    top: 105%;
     left: 0;
-    width: 100%;
-    background: white;
+    right: 0;
+    bottom: 100%;
+    top: auto;
+    transform: translateY(-6px);
+    background: #fff;
     border-radius: 14px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
     padding: 6px 0;
-    z-index: 9999;
-    max-height: 260px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    /* 🔥 SOLO 2.5 tarjetas visibles */
+    max-height: 190px;
+    /* altura exacta para 2.5 ítems */
     overflow-y: auto;
     display: none;
+    z-index: 99999;
+    scrollbar-width: thin;
+    /* Firefox */
+    scrollbar-color: #ccc #fff;
+    /* Firefox */
 }
 
 
-/* Cada item */
+/* ==== SCROLLBAR WEBKIT ==== */
+
+#search-suggestions::-webkit-scrollbar {
+    width: 6px;
+}
+
+#search-suggestions::-webkit-scrollbar-track {
+    background: #f2f2f2;
+    border-radius: 10px;
+}
+
+#search-suggestions::-webkit-scrollbar-thumb {
+    background: #bbb;
+    border-radius: 10px;
+}
+
+#search-suggestions::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
+
+/* ==== ITEM ==== */
 
 .suggestion-item {
     display: flex;
     align-items: center;
-    gap: 10px;
     padding: 10px 14px;
+    gap: 10px;
+    border-bottom: 1px solid #eee;
     cursor: pointer;
-    transition: background 0.15s ease;
+    transition: background 0.15s ease-in-out;
 }
 
-
-/* Hover */
+.suggestion-item:last-child {
+    border-bottom: none;
+}
 
 .suggestion-item:hover {
-    background: #f3f3f3;
+    background: #f7f7f7;
 }
 
 
-/* Imagen chiquita */
+/* ==== MINI IMÁGENES ==== */
 
 .suggestion-thumb {
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
     border-radius: 6px;
     object-fit: cover;
+    border: 1px solid #ddd;
 }
 
 
-/* Nombre */
+/* ==== NOMBRE DEL PRODUCTO ==== */
 
 .suggestion-name {
     font-size: 14px;
-    color: #222;
+    color: #333;
     font-weight: 500;
     line-height: 1.2;
 }
