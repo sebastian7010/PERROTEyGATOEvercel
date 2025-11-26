@@ -971,18 +971,18 @@ function getSuggestions(query) {
 
     const normalized = normalizeText(query);
 
-    const candidates = products.map(p => ({
-        id: p.id,
-        name: p.name,
-        searchable: p.searchable
-    }));
+    // ✔ Fuse devuelve coincidencias reales, inteligentes y ordenadas
+    const results = fuse.search(normalized);
 
-    const matches = candidates.filter(p =>
-        p.searchable.includes(normalized)
-    );
-
-    return matches.slice(0, 8); // máximo 8 sugerencias
+    // ✔ Preparar máximo 15 sugerencias internas (luego el CSS muestra 2.5)
+    return results
+        .slice(0, 15)
+        .map(r => ({
+            id: r.item.id,
+            name: r.item.name
+        }));
 }
+
 
 
 
