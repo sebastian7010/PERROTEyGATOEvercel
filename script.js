@@ -12,6 +12,13 @@ preloadImages([
     "https://…/champu.webp"
 ]);
 
+function normalizeText(text) {
+    return text
+        .toLowerCase()
+        .replace(/\s+/g, "") // quita espacios
+        .replace(/kilos|kilo|kg/g, "kg") // unifica formatos
+        .replace(/(\d+)(k|kg)/g, "$1kg"); // convierte 30k → 30kg
+}
 
 
 
@@ -80,7 +87,7 @@ function initializeSearch() {
     if (!searchBar) return;
 
     searchBar.addEventListener("input", () => {
-        const query = searchBar.value.trim();
+        const query = normalizeText(searchBar.value.trim());
         const hideables = document.querySelectorAll(".hide-on-search");
 
         if (query === "") {
@@ -219,6 +226,8 @@ function updateQuantityDisplay(productId) {
 // Convierte tu JSON nuevo -> esquema interno
 function normalizeProduct(p, idx) {
     // valores seguros
+    var searchable = normalizeText(name + " " + description);
+
     var name = (p && p.nombre) || (p && p.name) || 'Producto';
     var price = Number((p && p.precio) != null ? p.precio : (p && p.price) != null ? p.price : 0);
     var image = (p && p.url) || (p && p.image) || (p && p.imagenes && p.imagenes[0]) || '';
