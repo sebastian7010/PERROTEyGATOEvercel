@@ -43,9 +43,6 @@ function normalizeText(text) {
 }
 
 
-
-
-
 // @ts-nocheck
 // Función para detectar soporte de WebP en el navegador
 function supportsWebp(callback) {
@@ -96,54 +93,9 @@ let products = []; // Lista de productos obtenida del JSON
 let fuse; // Instancia de Fuse.js para búsqueda
 let categoryPages = {}; // Página actual por categoría
 
-// Opciones de Fuse.js
-const fuseOptions = {
-    keys: ['name', 'description'],
-    threshold: 0.4,
-};
 
 // Importación de las categorías desde el módulo externo
 import { categories } from './categories.js';
-
-/** Inicializar búsqueda usando Fuse.js **/
-function initializeSearch() {
-    const searchBar = document.getElementById("search-bar");
-    if (!searchBar) return;
-
-    searchBar.addEventListener("input", () => {
-        const query = normalizeText(searchBar.value.trim());
-        const hideables = document.querySelectorAll(".hide-on-search");
-
-        if (query === "") {
-            // Mostrar todo nuevamente
-            hideables.forEach(el => el.classList.remove("hidden-on-search"));
-            renderAllCategories();
-        } else {
-            // Ocultar secciones (botón, animales, etc.)
-            hideables.forEach(el => el.classList.add("hidden-on-search"));
-
-            // Buscar productos normalmente
-            const results = fuse.search(query);
-            renderSearchResults(results);
-
-            // Auto scroll cuando aparece el teclado
-            setTimeout(() => {
-                const searchBar = document.getElementById("search-bar");
-                if (!searchBar) return;
-
-                window.scrollTo({
-                    top: searchBar.offsetTop - 10,
-                    behavior: "smooth"
-                });
-
-            }, 200);
-
-        }
-    });
-}
-
-
-
 /** Renderizar los resultados de la búsqueda **/
 function renderSearchResults(results) {
     const container = document.getElementById('carousels-container');
@@ -313,6 +265,60 @@ function normalizeProduct(p, idx) {
         gallery,
         searchable
     };
+}
+
+function renderSuggestions(list) {
+    const box = document.getElementById("search-suggestions");
+    if (!box) return;
+
+    if (!list || list.length === 0) {
+        box.style.display = "none";
+        box.innerHTML = "";
+        return;
+    }
+
+    let html = "";
+    list.forEach(item => {
+        const product = products.find(p => p.id == item.id);
+        if (!product) return;
+
+        html += `
+            <div class="suggestion-item" data-id="${product.id}">
+                <img src="${product.image}" class="suggestion-thumb" />
+                <div class="suggestion-name">${product.name}</div>
+            </div>
+        `;
+    });
+
+    box.innerHTML = html;
+    box.style.display = "block";
+
+    // Eventos de clic
+    box.querySelectorAll(".suggestion-item").forEach(el => {
+        el.addEventListener("click", () => {
+            const id = el.dataset.id;
+            const selected = products.find(p => p.id == id);
+            if (!selected) return;
+
+            // Autocompletar barra
+            const searchBar = document.getElementById("search-bar");
+            searchBar.value = selected.name;
+
+            // Ocultar sugerencias
+            box.style.display = "none";
+
+            // Buscar y mostrar solo ese producto
+            const results = fuse.search(normalizeText(selected.name));
+            renderSearchResults(results);
+
+            setTimeout(() => {
+                window.scrollTo({
+                    top: searchBar.offsetTop - 10,
+                    behavior: "smooth"
+                });
+            }, 120);
+        });
+    });
 }
 
 
@@ -958,3 +964,59 @@ document.getElementById('modal-overlay').addEventListener('click', (event) => {
         setTimeout(initMarquee, 300);
     });
 })();
+
+
+function getSuggestions(query) {
+    if (!query || query.length < 1) return [];
+
+    const normalized = normalizeText(query);
+
+    const candidates = products.map(p => ({
+        id: p.id,
+        name: p.name,
+        searchable: p.searchable
+    }));
+
+    const matches = candidates.filter(p =>
+        p.searchable.includes(normalized)
+    );
+
+    return matches.slice(0, 8); // máximo 8 sugerencias
+}
+
+
+
+
+function initializeSearch() {
+    const searchBar = document.getElementById("search-bar");
+    if (!searchBar) return;
+
+    searchBar.addEventListener("input", () => {
+        const rawQuery = searchBar.value.trim();
+        const query = normalizeText(rawQuery);
+        const hideables = document.querySelectorAll(".hide-on-search");
+
+        // sugerencias
+        const suggestions = getSuggestions(rawQuery);
+        renderSuggestions(suggestions);
+
+        if (query === "") {
+            hideables.forEach(el => el.classList.remove("hidden-on-search"));
+            renderAllCategories();
+            document.getElementById("search-suggestions").style.display = "none";
+            return;
+        }
+
+        hideables.forEach(el => el.classList.add("hidden-on-search"));
+
+        const results = fuse.search(query);
+        renderSearchResults(results);
+
+        setTimeout(() => {
+            window.scrollTo({
+                top: searchBar.offsetTop - 10,
+                behavior: "smooth"
+            });
+        }, 150);
+    });
+}
