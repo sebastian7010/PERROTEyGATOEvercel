@@ -1825,3 +1825,241 @@ body {
 .pet-image-container {
     background: linear-gradient(41deg, #ffcc13, #000000) !important;
 }
+
+/* Ajustes de layout para que HERRAMIENTAS responda como la portada principal */
+
+.header>a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo {
+    width: min(320px, 52vw);
+    height: auto;
+    max-height: 140px;
+}
+
+.banner-text {
+    padding-right: 2rem;
+}
+
+.all-products-grid,
+.search-results-grid {
+    align-items: stretch;
+}
+
+.product-card {
+    width: 100%;
+    min-width: 0;
+    align-items: stretch;
+    border-radius: 16px;
+    padding: 12px;
+}
+
+.product-details {
+    width: 100%;
+}
+
+.product-details h3 {
+    line-height: 1.35;
+    min-height: 2.7em;
+}
+
+.product-details p {
+    color: #1a1a1a;
+    font-weight: 700;
+}
+
+.product-image {
+    aspect-ratio: 1 / 1;
+    height: auto;
+    max-height: none;
+}
+
+.quantity-controls {
+    width: 100%;
+    justify-content: center;
+}
+
+.quantity-btn {
+    min-width: 38px;
+    min-height: 38px;
+}
+
+.search-bar-container {
+    width: 100%;
+    max-width: 560px;
+}
+
+@media (max-width: 900px) {
+    .header {
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+
+    .navbar {
+        position: static;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    .navbar ul {
+        display: flex;
+        justify-content: center;
+    }
+
+    .logo {
+        width: min(260px, 70vw);
+        max-height: none;
+    }
+
+    .banner {
+        height: 2.6rem;
+    }
+
+    .banner-text {
+        font-size: 1rem;
+    }
+
+    .main-content {
+        padding: 1.5rem 1rem 5rem;
+    }
+
+    .category-section {
+        width: min(100%, calc(100% - 20px));
+    }
+
+    .all-products-container {
+        padding: 0 0 20px;
+    }
+
+    .product-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .search-results-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        padding: 14px 0;
+    }
+}
+
+@media (max-width: 600px) {
+    .header {
+        padding: 0.75rem 0.75rem 1rem;
+    }
+
+    .navbar ul {
+        width: 100%;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .nav-link {
+        width: min(260px, 100%);
+        text-align: center;
+        padding: 0.7rem 1rem;
+    }
+
+    .logo {
+        width: min(220px, 72vw);
+    }
+
+    .banner {
+        height: 2.3rem;
+    }
+
+    .banner-text {
+        font-size: 0.9rem;
+    }
+
+    .cta-container {
+        max-width: 100%;
+        padding: 0 8px;
+        gap: 14px;
+    }
+
+    .cta-button {
+        width: 100%;
+        max-width: 560px;
+        padding: 0.95rem 1rem;
+        font-size: 1rem;
+    }
+
+    .search-section {
+        width: 100%;
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+
+    .search-bar-container {
+        max-width: 100%;
+        padding: 0.45rem 0.65rem;
+    }
+
+    .icon-lupa {
+        width: 26px;
+        height: 26px;
+        margin-right: 8px;
+    }
+
+    .search-bar {
+        font-size: 0.95rem;
+        padding: 0.3rem 0;
+    }
+
+    .category-section {
+        width: calc(100% - 12px);
+    }
+
+    .category-title {
+        margin-top: 1.25rem;
+        font-size: 1.35rem;
+        text-align: center;
+    }
+
+    .product-grid,
+    .search-results-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .product-card {
+        padding: 10px;
+        border-radius: 14px;
+    }
+
+    .product-details h3 {
+        font-size: 0.92rem;
+        min-height: 3.1em;
+    }
+
+    .product-details p {
+        font-size: 0.9rem;
+    }
+
+    .quantity-controls {
+        gap: 8px;
+    }
+
+    .buy-btn {
+        padding: 0.85rem 0.75rem;
+        margin-top: 12px;
+    }
+}
+
+@media (max-width: 360px) {
+    .product-grid,
+    .search-results-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .product-details h3 {
+        min-height: 0;
+    }
+}
