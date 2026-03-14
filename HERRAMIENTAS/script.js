@@ -118,7 +118,7 @@ function renderSearchResults(results) {
           <p>$${product.price.toLocaleString()}</p>
           <div class="quantity-controls">
             <button class="quantity-btn minus" data-id="${product.id}">-</button>
-            <span id="quantity-${product.id}">0</span>
+            <span id="quantity-${product.id}">${cart[String(product.id)] || 0}</span>
             <button class="quantity-btn plus" data-id="${product.id}">+</button>
           </div>
           <button class="buy-btn" onclick="buyProduct(${product.id})">Comprar</button>
@@ -356,13 +356,12 @@ function initializePagination() {
     const container = document.getElementById('carousels-container');
     if (!container) return;
     container.innerHTML = '';
-    categoryPages[ALL_PRODUCTS_CATEGORY_ID] = 0;
-    renderCategory(ALL_PRODUCTS_CATEGORY_ID);
+    renderAllProductsList();
 }
 
 /** Renderizar todas las categorías con sus carruseles **/
 function renderAllCategories() {
-    renderCategory(ALL_PRODUCTS_CATEGORY_ID);
+    renderAllProductsList();
 }
 
 /** Renderizar una categoría con su carrusel **/
@@ -572,12 +571,11 @@ function sendCartToWhatsApp() {
                 const price = product.price;
                 const subtotal = qty * price;
                 totalPrice += subtotal;
-                // Se agregan detalles del producto y la URL de la imagen
+                // Se agregan los detalles del producto al mensaje
                 message += `\n*${product.name}*\n`;
                 message += `Cantidad: ${qty}\n`;
                 message += `Precio unitario: $${price.toLocaleString()}\n`;
                 message += `Subtotal: $${subtotal.toLocaleString()}\n`;
-                message += `Imagen: ${product.image}\n`;
             }
         }
     }
@@ -678,6 +676,58 @@ function flyToCart(cardElement, isAdding) {
             clonedElement.parentNode.removeChild(clonedElement);
         }
     }, 900);
+}
+
+function createFullProductCard(product) {
+    const productCard = document.createElement('div');
+    productCard.classList.add('product-card');
+    productCard.dataset.id = product.id;
+    productCard.innerHTML = `
+        <img src="${product.image}" alt="${product.name}" class="product-image" data-gallery='${JSON.stringify(product.gallery && product.gallery.length ? product.gallery : [product.image])}' loading="lazy" width="300" height="300">
+        <div class="product-details">
+          <h3>${product.name}</h3>
+          <p>$${product.price.toLocaleString()}</p>
+          <div class="quantity-controls">
+            <button class="quantity-btn minus" data-id="${product.id}">-</button>
+            <span id="quantity-${product.id}">${cart[String(product.id)] || 0}</span>
+            <button class="quantity-btn plus" data-id="${product.id}">+</button>
+          </div>
+          <button class="buy-btn" onclick="buyProduct(${product.id})">Comprar</button>
+        </div>`;
+    return productCard;
+}
+
+function renderAllProductsList() {
+    const container = document.getElementById('carousels-container');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (!products.length) {
+        container.innerHTML = '<p>No se encontraron productos.</p>';
+        return;
+    }
+
+    const section = document.createElement('section');
+    section.classList.add('category-section');
+    section.id = `category-${ALL_PRODUCTS_CATEGORY_ID}`;
+    section.innerHTML = `
+        <h2 class="category-title">Todas las herramientas</h2>
+        <div class="all-products-container">
+            <div class="product-grid all-products-grid" id="all-products-grid"></div>
+        </div>
+    `;
+
+    const grid = section.querySelector('#all-products-grid');
+    const fragment = document.createDocumentFragment();
+    products.forEach(product => {
+        fragment.appendChild(createFullProductCard(product));
+    });
+    grid.appendChild(fragment);
+    container.appendChild(section);
+
+    attachEventListeners();
+    assignImageClickEvents();
 }
 
 

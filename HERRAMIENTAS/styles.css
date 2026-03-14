@@ -378,6 +378,16 @@ body {
     /* Color de fondo suave para separar visualmente */
 }
 
+.category-section {
+    width: min(1400px, calc(100% - 32px));
+    margin: 0 auto;
+}
+
+.all-products-container {
+    width: 100%;
+    padding: 0 10px 24px;
+}
+
 .category-title {
     margin-top: 2rem;
 }
@@ -1164,8 +1174,7 @@ body {
 
 .product-grid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    /* 6 columnas */
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     grid-auto-rows: auto;
     gap: 20px;
     /* Espaciado entre productos */
