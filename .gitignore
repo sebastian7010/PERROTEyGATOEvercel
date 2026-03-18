@@ -1,2 +1,8 @@
 node_modules/
 .next/
+
+.vercel
+check_imgs/
+check_imgs_*/
+missing_root_images.txt
+*.backup-*.json
