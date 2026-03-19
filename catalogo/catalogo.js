@@ -77,7 +77,7 @@ function renderProducts(productsToRender) {
 
     const fragment = document.createDocumentFragment();
 
-    productsToRender.forEach(function(product) {
+    productsToRender.forEach(function(product, index) {
         const priceNum = Number(product.price || 0);
         const safeImage = product.image || '';
         const safeName = product.name || 'Producto';
@@ -87,7 +87,7 @@ function renderProducts(productsToRender) {
         card.classList.add("product-card");
         card.innerHTML = `
       <img src="${safeImage}" alt="${safeName}" class="product-image"
-           loading="lazy" width="300" height="300"
+           loading="${index < 4 ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${index < 4 ? 'high' : 'low'}" width="300" height="300"
            data-gallery='${JSON.stringify(gallery)}'>
       <div class="product-details">
         <h3>${safeName}</h3>
@@ -470,10 +470,13 @@ function openModal(imageElement) {
     } catch (e) {
         images = [imageElement.src];
     }
-    images.forEach(function(src) {
+    images.forEach(function(src, index) {
         const img = document.createElement('img');
         img.src = src;
         img.alt = imageElement.alt || 'Producto';
+        img.loading = index === 0 ? 'eager' : 'lazy';
+        img.decoding = 'async';
+        img.fetchPriority = index === 0 ? 'high' : 'low';
         modalImagesContainer.appendChild(img);
     });
     modalOverlay.style.display = 'flex';

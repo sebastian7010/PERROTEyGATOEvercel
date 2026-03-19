@@ -1,9 +1,4 @@
-const preloadImages = (urls) => {
-    urls.forEach(url => {
-        const img = new Image();
-        img.src = url;
-    });
-};
+const preloadImages = () => {};
 
 // precargar algunas imágenes populares
 preloadImages([
@@ -46,27 +41,12 @@ function normalizeText(text) {
 // @ts-nocheck
 // Función para detectar soporte de WebP en el navegador
 function supportsWebp(callback) {
-    const img = new Image();
-    img.onload = function() {
-        callback(true);
-    };
-    img.onerror = function() {
-        callback(false);
-    };
-    // Usamos una imagen de prueba en base64
-    img.src =
-        'data:image/webp;base64,UklGRiIAAABXRUJQVlA4TCEAAAAvAAAAAAfQ//73v/+BiOh/AAA=';
+    callback(false);
 }
 
 // Función que reemplaza en todos los elementos <img> la extensión .jpg o .png por .webp
 function replaceImagesWithWebp() {
-    const imgs = document.querySelectorAll('img');
-    imgs.forEach((img) => {
-        // Solo modificamos si la URL termina en jpg o png
-        if (img.src.match(/\.(jpg|png)$/i)) {
-            img.src = img.src.replace(/\.(jpg|png)$/i, '.webp');
-        }
-    });
+    return;
 }
 
 // Llamamos a la función de soporte y reemplazo al cargar el DOM
@@ -109,11 +89,11 @@ function renderSearchResults(results) {
 
     // Se construye un layout tipo grid para los resultados de la búsqueda.
     let html = '<div class="search-results-grid">';
-    results.forEach(result => {
+    results.forEach((result, index) => {
         const product = result.item;
         html += `
       <div class="product-card" data-id="${product.id}">
-        <img src="${product.image}" alt="${product.name}" class="product-image" data-gallery='${JSON.stringify(product.gallery && product.gallery.length ? product.gallery : [product.image])}'>
+        <img src="${product.image}" alt="${product.name}" class="product-image" data-gallery='${JSON.stringify(product.gallery && product.gallery.length ? product.gallery : [product.image])}' loading="${index < 4 ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${index < 4 ? 'high' : 'low'}" width="300" height="300">
         <div class="product-details">
           <h3>${product.name}</h3>
           <p>$${product.price.toLocaleString()}</p>
@@ -284,7 +264,7 @@ function renderSuggestions(list) {
 
         html += `
             <div class="suggestion-item" data-id="${product.id}">
-                <img src="${product.image}" class="suggestion-thumb" />
+                <img src="${product.image}" class="suggestion-thumb" loading="lazy" decoding="async" fetchpriority="low" width="38" height="38" />
                 <div class="suggestion-name">${product.name}</div>
             </div>
         `;
@@ -447,12 +427,14 @@ function generateProductGrid(products) {
         const rowDiv = document.createElement('div');
         rowDiv.classList.add('carousel-row');
         const rowProducts = filteredProds.slice(i, i + itemsPerRow);
-        rowProducts.forEach(product => {
+        rowProducts.forEach((product, rowIndex) => {
             const productCard = document.createElement('div');
             productCard.classList.add('product-card');
             productCard.dataset.id = product.id;
+            const imageLoading = i + rowIndex < itemsPerRow ? 'eager' : 'lazy';
+            const imagePriority = i + rowIndex < itemsPerRow ? 'high' : 'low';
             productCard.innerHTML = `
-                <img src="${product.image}" alt="${product.name}" class="product-image" data-gallery='${JSON.stringify(product.gallery && product.gallery.length ? product.gallery : [product.image])}' loading="lazy" width="300" height="300">
+                <img src="${product.image}" alt="${product.name}" class="product-image" data-gallery='${JSON.stringify(product.gallery && product.gallery.length ? product.gallery : [product.image])}' loading="${imageLoading}" decoding="async" fetchpriority="${imagePriority}" width="300" height="300">
                 <div class="product-details">
                   <h3>${product.name}</h3>
                   <p>$${product.price.toLocaleString()}</p>
@@ -784,10 +766,13 @@ function openModal(imageElement) {
     }
 
     // Por cada imagen, crear un elemento <img> y agregarlo al contenedor
-    images.forEach(src => {
+    images.forEach((src, index) => {
         const img = document.createElement('img');
         img.src = src;
         img.alt = imageElement.alt || 'Producto';
+        img.loading = index === 0 ? 'eager' : 'lazy';
+        img.decoding = 'async';
+        img.fetchPriority = index === 0 ? 'high' : 'low';
         modalImagesContainer.appendChild(img);
     });
 

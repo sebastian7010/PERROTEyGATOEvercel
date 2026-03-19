@@ -110,13 +110,13 @@ function renderSearchResults(results) {
     const gridDiv = document.createElement('div');
     gridDiv.classList.add('search-results-grid');
 
-    results.forEach(result => {
+    results.forEach((result, index) => {
         const product = result.item;
         const productCard = document.createElement('div');
         productCard.classList.add('product-card');
         productCard.dataset.id = product.id;
         productCard.innerHTML = `
-            <img src="${product.image}" alt="${product.name}" class="product-image" data-gallery='${JSON.stringify(product.gallery && product.gallery.length ? product.gallery : [product.image])}'>
+            <img src="${product.image}" alt="${product.name}" class="product-image" data-gallery='${JSON.stringify(product.gallery && product.gallery.length ? product.gallery : [product.image])}' loading="${index < 4 ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${index < 4 ? 'high' : 'low'}" width="300" height="300">
             <div class="product-details">
                 <h3>${product.name}</h3>
                 <p>$${product.price.toLocaleString()}</p>
@@ -311,13 +311,13 @@ function generateProductGrid(products) {
     for (let i = 0; i < products.length; i += productsPerPage) {
         html += '<div class="carousel-row">';
         const rowProducts = products.slice(i, i + productsPerPage);
-        rowProducts.forEach(product => {
+        rowProducts.forEach((product, index) => {
             // Usa product.gallery si existe; de lo contrario, usa product.image
             const galleryArray = product.gallery && product.gallery.length ? product.gallery : [product.image];
             const galleryData = JSON.stringify(galleryArray);
             html += `
         <div class="product-card" data-id="${product.id}">
-          <img src="${product.image}" alt="${product.name}" class="product-image" data-gallery='${galleryData}' loading="lazy" width="300" height="300">
+          <img src="${product.image}" alt="${product.name}" class="product-image" data-gallery='${galleryData}' loading="${i + index < productsPerPage ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${i + index < productsPerPage ? 'high' : 'low'}" width="300" height="300">
           <div class="product-details">
             <h3>${product.name}</h3>
             <p>$${product.price.toLocaleString()}</p>
@@ -672,10 +672,13 @@ function openModal(imageElement) {
     }
 
     // Por cada imagen, crear un elemento <img> y agregarlo al contenedor
-    images.forEach(src => {
+    images.forEach((src, index) => {
         const img = document.createElement('img');
         img.src = src;
         img.alt = imageElement.alt || 'Producto';
+        img.loading = index === 0 ? 'eager' : 'lazy';
+        img.decoding = 'async';
+        img.fetchPriority = index === 0 ? 'high' : 'low';
         modalImagesContainer.appendChild(img);
     });
 
